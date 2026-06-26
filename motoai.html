@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MotoRoute AI — Il tuo giro perfetto</title>
+<meta name="description" content="Genera itinerari in moto su misura con l'AI. Mappa interattiva, meteo per ogni tappa, download GPX."/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  /* ── reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green:   #1D9E75;
+    --green-l: #EAF3DE;
+    --green-d: #3B6D11;
+    --blue:    #185FA5;
+    --blue-l:  #E6F1FB;
+    --blue-d:  #0C447C;
+    --amber:   #BA7517;
+    --amber-l: #FAEEDA;
+    --amber-d: #854F0B;
+    --red:     #A32D2D;
+    --red-l:   #FCEBEB;
+    --gray:    #888780;
+    --bg:      #ffffff;
+    --bg2:     #f7f7f5;
+    --bg3:     #f0efec;
+    --txt:     #1a1a18;
+    --txt2:    #6b6a65;
+    --txt3:    #9b9a95;
+    --border:  rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --radius:  8px;
+    --radius-lg: 12px;
+    --shadow:  0 1px 3px rgba(0,0,0,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:    #1a1a18;
+      --bg2:   #242422;
+      --bg3:   #2e2e2b;
+      --txt:   #f0efec;
+      --txt2:  #a0a09a;
+      --txt3:  #6b6a65;
+      --border:  rgba(255,255,255,0.10);
+      --border2: rgba(255,255,255,0.18);
+      --green-l: #0a3020;
+      --green-d: #9FE1CB;
+      --blue-l:  #051e38;
+      --blue-d:  #85B7EB;
+      --amber-l: #2a1e05;
+      --amber-d: #FAC775;
+      --red-l:   #2a0a0a;
+    }
+  }
+
+  html, body { height: 100%; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 15px; color: var(--txt); background: var(--bg); line-height: 1.5; }
+
+  /* ── layout ── */
+  .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 1.25rem; height: 52px;
+    border-bottom: 0.5px solid var(--border); flex-shrink: 0;
+    background: var(--bg);
+  }
+  .logo { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+  .logo i { color: var(--green); font-size: 22px; }
+  .logo span { color: var(--txt2); font-weight: 400; font-size: 13px; margin-left: 4px; }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── sidebar ── */
+  .sidebar {
+    width: 300px; flex-shrink: 0;
+    display: flex; flex-direction: column;
+    border-right: 0.5px solid var(--border);
+    background: var(--bg); overflow-y: auto;
+  }
+  .sidebar-inner { padding: 1rem; display: flex; flex-direction: column; gap: 14px; }
+
+  label.field-label {
+    display: block; font-size: 11px; font-weight: 600;
+    color: var(--txt3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px;
+  }
+  input[type=text], select, textarea {
+    width: 100%; padding: 8px 10px;
+    border: 0.5px solid var(--border2); border-radius: var(--radius);
+    background: var(--bg); color: var(--txt); font-size: 14px;
+    outline: none; transition: border-color 0.15s;
+    font-family: inherit;
+  }
+  input[type=text]:focus, select:focus, textarea:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.12);
+  }
+  textarea { height: 68px; resize: none; line-height: 1.45; }
+
+  .range-row { display: flex; align-items: center; gap: 10px; }
+  input[type=range] {
+    flex: 1; accent-color: var(--green);
+    height: 4px; cursor: pointer;
+    background: var(--bg3); border-radius: 2px;
+    border: none; padding: 0;
+  }
+  .range-val { font-size: 13px; font-weight: 600; min-width: 50px; text-align: right; color: var(--txt); }
+
+  .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .cb-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--txt2);
+    cursor: pointer; padding: 4px 0; user-select: none; }
+  .cb-item input { width: 15px; height: 15px; accent-color: var(--green); cursor: pointer; }
+
+  .api-key-row { display: flex; gap: 6px; align-items: center; }
+  .api-key-row input { flex: 1; font-size: 13px; font-family: monospace; }
+  .btn-eye { background: none; border: none; cursor: pointer; color: var(--txt3); font-size: 18px;
+    padding: 0 4px; display: flex; align-items: center; }
+
+  .btn-gen {
+    width: 100%; padding: 11px;
+    background: var(--green); color: #fff; border: none;
+    border-radius: var(--radius); font-size: 14px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity 0.18s;
+  }
+  .btn-gen:hover { opacity: 0.87; }
+  .btn-gen:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .api-hint { font-size: 11px; color: var(--txt3); line-height: 1.5; }
+  .api-hint a { color: var(--blue); }
+
+  /* ── map + results column ── */
+  .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  #map { flex: 1; min-height: 0; background: var(--bg3); }
+
+  /* ── result panel ── */
+  .result-panel {
+    height: 300px; flex-shrink: 0;
+    border-top: 0.5px solid var(--border);
+    overflow-y: auto; background: var(--bg);
+  }
+  .result-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; color: var(--txt3); gap: 10px; font-size: 14px;
+  }
+  .result-empty i { font-size: 36px; opacity: 0.4; }
+
+  .result-inner { padding: 1rem 1.25rem; }
+
+  .route-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .route-title { font-size: 17px; font-weight: 600; }
+  .route-sub { font-size: 13px; color: var(--txt2); margin-top: 2px; }
+
+  .badge {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    font-weight: 600; white-space: nowrap;
+  }
+  .badge-green { background: var(--green-l); color: var(--green-d); }
+  .badge-amber { background: var(--amber-l); color: var(--amber-d); }
+  .badge-red   { background: var(--red-l);   color: var(--red); }
+
+  .stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .stat-card {
+    background: var(--bg2); border-radius: var(--radius);
+    padding: 8px 14px; text-align: center; min-width: 70px;
+  }
+  .stat-val { font-size: 16px; font-weight: 600; }
+  .stat-lbl { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+
+  .highlights {
+    font-size: 13px; color: var(--txt2); margin-bottom: 14px;
+    padding: 8px 12px; background: var(--bg2); border-radius: var(--radius);
+    border-left: 3px solid var(--green);
+  }
+  .highlights i { color: var(--green); margin-right: 4px; }
+
+  /* ── stops ── */
+  .stop-item {
+    display: flex; gap: 12px; padding: 10px 0;
+    border-bottom: 0.5px solid var(--border);
+    align-items: flex-start;
+  }
+  .stop-item:last-of-type { border-bottom: none; }
+  .stop-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--green); color: #fff;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .stop-content { flex: 1; }
+  .stop-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .stop-name { font-size: 14px; font-weight: 600; }
+  .stop-desc { font-size: 12px; color: var(--txt2); margin-top: 4px; line-height: 1.5; }
+  .stop-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .tag {
+    font-size: 11px; padding: 2px 8px; border-radius: 20px;
+    background: var(--bg2); color: var(--txt2);
+    border: 0.5px solid var(--border);
+  }
+  .tag-g { background: var(--green-l); color: var(--green-d); }
+  .tag-b { background: var(--blue-l); color: var(--blue-d); }
+  .tag-a { background: var(--amber-l); color: var(--amber-d); }
+
+  /* ── meteo chip ── */
+  .meteo-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; padding: 2px 8px; border-radius: 20px;
+    background: var(--blue-l); color: var(--blue-d);
+    border: 0.5px solid rgba(24,95,165,0.2);
+  }
+  .meteo-chip i { font-size: 13px; }
+  .meteo-chip.warn { background: var(--amber-l); color: var(--amber-d); }
+  .meteo-chip.alert { background: var(--red-l); color: var(--red); }
+
+  /* ── action buttons ── */
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px;
+    border-top: 0.5px solid var(--border); }
+  .btn-action {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; font-size: 13px; font-weight: 500;
+    border-radius: var(--radius); cursor: pointer;
+    border: 0.5px solid var(--border2);
+    background: transparent; color: var(--txt);
+    transition: background 0.15s;
+  }
+  .btn-action:hover { background: var(--bg2); }
+  .btn-action.primary { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn-action.primary:hover { opacity: 0.87; background: var(--green); }
+
+  /* ── loading / spinner ── */
+  .spinner {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    animation: spin 0.75s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-overlay {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; gap: 14px; color: var(--txt2);
+  }
+  .loading-overlay .sp2 {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border2);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+  }
+
+  .error-box {
+    margin: 1rem; padding: 14px; border-radius: var(--radius);
+    background: var(--red-l); color: var(--red);
+    font-size: 13px; line-height: 1.5;
+  }
+  .error-box strong { display: block; margin-bottom: 4px; }
+
+  /* ── responsive ── */
+  @media (max-width: 700px) {
+    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 0.5px solid var(--border); }
+    .main { flex-direction: column; }
+    #map { min-height: 260px; }
+    .result-panel { height: auto; max-height: 400px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- header -->
+  <header>
+    <div class="logo">
+      <i class="ti ti-motorbike"></i>
+      MotoRoute AI
+      <span>itinerari generati dall'intelligenza artificiale</span>
+    </div>
+    <a href="https://console.anthropic.com" target="_blank" style="font-size:12px;color:var(--txt3);text-decoration:none;">
+      <i class="ti ti-settings" style="vertical-align:-2px"></i> API
+    </a>
+  </header>
+
+  <div class="main">
+
+    <!-- sidebar / form -->
+    <div class="sidebar">
+      <div class="sidebar-inner">
+
+        <!-- API key -->
+        <div>
+          <label class="field-label">API Key Anthropic</label>
+          <div class="api-key-row">
+            <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off"/>
+            <button class="btn-eye" onclick="toggleKey()" title="Mostra/nascondi">
+              <i class="ti ti-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+          <div class="api-hint" style="margin-top:5px">
+            Ottienila su <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+            Non viene salvata né inviata a terzi.
+          </div>
+        </div>
+
+        <hr style="border:none;border-top:0.5px solid var(--border)"/>
+
+        <!-- partenza -->
+        <div>
+          <label class="field-label">Partenza</label>
+          <input type="text" id="start" placeholder="es. Bologna, Firenze, Trento…" value="Bologna"/>
+        </div>
+
+        <!-- moto -->
+        <div>
+          <label class="field-label">Tipo di moto</label>
+          <select id="moto">
+            <option value="sportiva">Sportiva / Naked</option>
+            <option value="adventure" selected>Adventure / Enduro</option>
+            <option value="touring">Touring / Custom</option>
+            <option value="qualsiasi">Qualsiasi tipo</option>
+          </select>
+        </div>
+
+        <!-- durata -->
+        <div>
+          <label class="field-label">Durata del giro</label>
+          <div class="range-row">
+            <input type="range" id="durataRange" min="1" max="10" step="0.5" value="3"
+              oninput="document.getElementById('durataVal').textContent=this.value+'h'"/>
+            <span class="range-val" id="durataVal">3h</span>
+          </div>
+        </div>
+
+        <!-- km -->
+        <div>
+          <label class="field-label">Distanza circa</label>
+          <div class="range-row">
+            <input type="range" id="kmRange" min="50" max="600" step="10" value="200"
+              oninput="document.getElementById('kmVal').textContent=this.value+' km'"/>
+            <span class="range-val" id="kmVal">200 km</span>
+          </div>
+        </div>
+
+        <!-- stile -->
+        <div>
+          <label class="field-label">Stile del percorso</label>
+          <div class="checkbox-grid">
+            <label class="cb-item"><input type="checkbox" id="cb_passi" checked/> Passi alpini</label>
+            <label class="cb-item"><input type="checkbox" id="cb_panoramico" checked/> Panoramico</label>
+            <label class="cb-item"><input type="checkbox" id="cb_sterrato"/> Sterrato / off-road</label>
+            <label class="cb-item"><input type="checkbox" id="cb_costa"/> Costiero</label>
+            <label class="cb-item"><input type="checkbox" id="cb_cibo" checked/> Soste gastronomiche</label>
+            <label class="cb-item"><input type="checkbox" id="cb_anello" checked/> Giro ad anello</label>
+          </div>
+        </div>
+
+        <!-- meteo -->
+        <div>
+          <label class="field-label">Data del giro</label>
+          <input type="date" id="dataGiro" style="width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--txt);font-size:14px;font-family:inherit;outline:none"/>
+        </div>
+
+        <!-- note -->
+        <div>
+          <label class="field-label">Note libere (opzionale)</label>
+          <textarea id="note" placeholder="es. evita autostrade, voglio vedere un castello, no sterrato lungo…"></textarea>
+        </div>
+
+        <!-- genera -->
+        <button class="btn-gen" id="btnGen" onclick="generateRoute()">
+          <i class="ti ti-route"></i> Genera il mio itinerario
+        </button>
+
+      </div>
+    </div>
+
+    <!-- mappa + risultato -->
+    <div class="content">
+      <div id="map"></div>
+      <div class="result-panel" id="resultPanel">
+        <div class="result-empty">
+          <i class="ti ti-map-2"></i>
+          <span>Configura il giro e premi "Genera"</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ── mappa ── */
+const map = L.map('map', { zoomControl: true }).setView([44.4, 11.3], 7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+  maxZoom: 18
+}).addTo(map);
+const routeLayer   = L.layerGroup().addTo(map);
+const markerLayer  = L.layerGroup().addTo(map);
+
+/* ── imposta data default = oggi ── */
+(function() {
+  const el = document.getElementById('dataGiro');
+  const today = new Date();
+  el.value = today.toISOString().slice(0, 10);
+})();
+
+/* ── mostra/nascondi API key ── */
+function toggleKey() {
+  const inp = document.getElementById('apiKey');
+  const ico = document.getElementById('eyeIcon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    ico.className = 'ti ti-eye-off';
+  } else {
+    inp.type = 'password';
+    ico.className = 'ti ti-eye';
+  }
+}
+
+/* ── main generate ── */
+async function generateRoute() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) {
+    alert('Inserisci prima la tua API Key Anthropic nel campo in alto.');
+    return;
+  }
+
+  const fd = getFormData();
+  const btn = document.getElementById('btnGen');
+  const panel = document.getElementById('resultPanel');
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Generando…';
+  panel.innerHTML = `<div class="loading-overlay"><div class="sp2"></div><span>L'AI sta pianificando il tuo giro…</span></div>`;
+
+  try {
+    const route = await callAI(apiKey, fd);
+    const weather = await fetchWeather(route.tappe, fd.data);
+    renderResult(route, weather, fd);
+  } catch(e) {
+    panel.innerHTML = `<div class="error-box"><strong><i class="ti ti-alert-circle"></i> Errore</strong>${e.message || 'Errore sconosciuto. Controlla la API key e riprova.'}</div>`;
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-route"></i> Genera il mio itinerario';
+}
+
+/* ── legge il form ── */
+function getFormData() {
+  return {
+    start:      document.getElementById('start').value || 'Bologna',
+    moto:       document.getElementById('moto').value,
+    durata:     document.getElementById('durataRange').value,
+    km:         document.getElementById('kmRange').value,
+    passi:      document.getElementById('cb_passi').checked,
+    panoramico: document.getElementById('cb_panoramico').checked,
+    sterrato:   document.getElementById('cb_sterrato').checked,
+    costa:      document.getElementById('cb_costa').checked,
+    cibo:       document.getElementById('cb_cibo').checked,
+    anello:     document.getElementById('cb_anello').checked,
+    note:       document.getElementById('note').value,
+    data:       document.getElementById('dataGiro').value,
+  };
+}
+
+/* ── chiama Anthropic API ── */
+async function callAI(apiKey, fd) {
+  const stili = [
+    fd.passi      ? 'passi alpini / montagna' : '',
+    fd.panoramico ? 'strade panoramiche' : '',
+    fd.sterrato   ? 'tratti sterrati / off-road' : '',
+    fd.costa      ? 'percorso costiero' : '',
+    fd.cibo       ? 'soste gastronomiche tipiche' : '',
+    fd.anello     ? 'giro ad anello (ritorno al punto di partenza)' : '',
+  ].filter(Boolean).join(', ');
+
+  const prompt = `Sei un esperto di percorsi in moto in Italia. Crea un itinerario dettagliato con queste caratteristiche:
+- Partenza: ${fd.start}
+- Tipo di moto: ${fd.moto}
+- Durata: ${fd.durata} ore
+- Distanza totale: circa ${fd.km} km
+- Stile: ${stili || 'libero'}
+- Note aggiuntive: ${fd.note || 'nessuna'}
+
+Rispondi SOLO con un oggetto JSON valido. Nessun testo fuori dal JSON, nessun markdown, nessun backtick.
+
+{
+  "titolo": "nome evocativo del percorso (max 6 parole)",
+  "sottotitolo": "descrizione breve in una frase",
+  "km_totali": <numero intero>,
+  "durata_ore": <numero>,
+  "difficolta": "Facile|Media|Impegnativa",
+  "highlights": "frase con 2-3 elementi salienti del percorso",
+  "tappe": [
+    {
+      "nome": "nome del luogo reale",
+      "lat": <latitudine decimale precisa>,
+      "lon": <longitudine decimale precisa>,
+      "descrizione": "cosa fare o vedere, max 2 righe",
+      "tipo": "partenza|percorso|sosta_cibo|punto_panoramico|passo|arrivo",
+      "km_da_inizio": <numero>,
+      "tempo_min": <minuti di guida dalla tappa precedente>
+    }
+  ]
+}
+
+Le tappe devono essere 6-9. Usa SOLO luoghi reali in Italia con coordinate accurate. Includi sempre una tappa di partenza e una di arrivo.`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-calls': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Errore API ${resp.status}`);
+  }
+
+  const data = await resp.json();
+  let text = data.content.map(b => b.text || '').join('');
+  text = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(text);
+}
+
+/* ── fetch meteo da open-meteo (gratuito, no key) ── */
+async function fetchWeather(tappe, data) {
+  if (!tappe || tappe.length === 0) return {};
+  const dateStr = data || new Date().toISOString().slice(0, 10);
+
+  const results = {};
+  // fetch meteo solo per 3 tappe rappresentative (inizio, metà, fine) per non sovraccaricare
+  const indices = [0, Math.floor(tappe.length / 2), tappe.length - 1];
+  const selected = [...new Set(indices)];
+
+  await Promise.all(selected.map(async (i) => {
+    const t = tappe[i];
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${t.lat}&longitude=${t.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max,weathercode&timezone=Europe/Rome&start_date=${dateStr}&end_date=${dateStr}`;
+      const r = await fetch(url);
+      const d = await r.json();
+      if (d.daily && d.daily.temperature_2m_max) {
+        results[i] = {
+          tmax:   Math.round(d.daily.temperature_2m_max[0]),
+          tmin:   Math.round(d.daily.temperature_2m_min[0]),
+          pioggia: Math.round(d.daily.precipitation_probability_max[0]),
+          vento:  Math.round(d.daily.windspeed_10m_max[0]),
+          code:   d.daily.weathercode[0],
+        };
+      }
+    } catch(e) { /* ignora errori meteo silenziosamente */ }
+  }));
+
+  return results;
+}
+
+/* ── WMO weather code → icona e descrizione ── */
+function wmoToIcon(code) {
+  if (code === 0)               return { icon: 'ti-sun',            label: 'Sole' };
+  if (code <= 2)                return { icon: 'ti-cloud',          label: 'Parzialmente nuvoloso' };
+  if (code === 3)               return { icon: 'ti-cloud',          label: 'Nuvoloso' };
+  if (code <= 49)               return { icon: 'ti-cloud-fog',      label: 'Nebbia' };
+  if (code <= 59)               return { icon: 'ti-cloud-drizzle',  label: 'Pioggerella' };
+  if (code <= 69)               return { icon: 'ti-cloud-rain',     label: 'Pioggia' };
+  if (code <= 79)               return { icon: 'ti-snowflake',      label: 'Neve' };
+  if (code <= 84)               return { icon: 'ti-cloud-rain',     label: 'Rovesci' };
+  if (code <= 99)               return { icon: 'ti-storm',          label: 'Temporale' };
+  return { icon: 'ti-cloud', label: 'Variabile' };
+}
+
+/* ── render risultato ── */
+function renderResult(route, weather, fd) {
+  const panel = document.getElementById('resultPanel');
+  routeLayer.clearLayers();
+  markerLayer.clearLayers();
+
+  // disegna polyline
+  const coords = route.tappe.map(t => [t.lat, t.lon]);
+  if (coords.length > 1) {
+    L.polyline(coords, { color: '#1D9E75', weight: 4.5, opacity: 0.88 }).addTo(routeLayer);
+  }
+
+  // marker per ogni tappa
+  route.tappe.forEach((t, i) => {
+    const isStart = i === 0;
+    const isEnd   = i === route.tappe.length - 1;
+    const bg = isStart ? '#1D9E75' : isEnd ? '#A32D2D' : '#185FA5';
+    const icon = L.divIcon({
+      html: `<div style="width:24px;height:24px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.35)">${i+1}</div>`,
+      iconSize: [24, 24], iconAnchor: [12, 12], className: ''
+    });
+    L.marker([t.lat, t.lon], { icon })
+      .bindPopup(`<b>${t.nome}</b><br><small style="color:#555">${t.descrizione}</small>`)
+      .addTo(markerLayer);
+  });
+
+  // fit bounds
+  if (coords.length) map.fitBounds(L.latLngBounds(coords), { padding: [32, 32] });
+
+  // badge difficoltà
+  const difClass = { Facile: 'badge-green', Media: 'badge-amber', Impegnativa: 'badge-red' };
+
+  // tipo tappa → icona
+  const tipoIcon = {
+    partenza:         'ti-flag-2',
+    arrivo:           'ti-flag-checkered',
+    percorso:         'ti-road',
+    sosta_cibo:       'ti-tools-kitchen-2',
+    punto_panoramico: 'ti-mountain',
+    passo:            'ti-chevrons-up',
+  };
+  const tipoLabel = {
+    partenza: 'Partenza', arrivo: 'Arrivo', percorso: 'Percorso',
+    sosta_cibo: 'Sosta cibo', punto_panoramico: 'Panorama', passo: 'Passo',
+  };
+  const tipoTagClass = {
+    partenza: 'tag-g', arrivo: 'tag-g', sosta_cibo: 'tag-a',
+    punto_panoramico: 'tag-b', passo: 'tag-b',
+  };
+
+  // indici meteo rappresentativi
+  const wIndices = [0, Math.floor(route.tappe.length/2), route.tappe.length-1];
+  const wSet = new Set([...new Set(wIndices)]);
+  let wIdx = 0;
+
+  // costruisci tappe HTML
+  const stopHtml = route.tappe.map((t, i) => {
+    // trova se questa tappa ha meteo
+    let meteoHtml = '';
+    if (weather[i] !== undefined) {
+      const w = weather[i];
+      const ico = wmoToIcon(w.code);
+      const warnClass = w.pioggia > 60 ? 'alert' : w.pioggia > 30 ? 'warn' : '';
+      meteoHtml = `
+        <span class="meteo-chip ${warnClass}">
+          <i class="ti ${ico.icon}"></i>
+          ${w.tmax}° / ${w.tmin}° · Pioggia ${w.pioggia}% · Vento ${w.vento} km/h
+        </span>`;
+    }
+
+    const tagClass = tipoTagClass[t.tipo] || '';
+    const iconName = tipoIcon[t.tipo] || 'ti-map-pin';
+    const label    = tipoLabel[t.tipo] || t.tipo;
+
+    return `<div class="stop-item">
+      <div class="stop-num">${i+1}</div>
+      <div class="stop-content">
+        <div class="stop-header">
+          <span class="stop-name"><i class="ti ${iconName}" style="vertical-align:-2px;margin-right:4px;color:var(--green)"></i>${t.nome}</span>
+        </div>
+        <div class="stop-desc">${t.descrizione}</div>
+        <div class="stop-tags">
+          <span class="tag ${tagClass}">${label}</span>
+          ${t.km_da_inizio ? `<span class="tag">${t.km_da_inizio} km</span>` : ''}
+          ${t.tempo_min    ? `<span class="tag"><i class="ti ti-clock" style="vertical-align:-1px"></i> ${t.tempo_min} min</span>` : ''}
+          ${meteoHtml}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // meteo summary (tappa 0 se disponibile)
+  let meteoSummary = '';
+  const w0 = weather[0];
+  if (w0) {
+    const ico = wmoToIcon(w0.code);
+    const dateLabel = fd.data ? new Date(fd.data+'T12:00:00').toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'long'}) : 'oggi';
+    const warnMsg = w0.pioggia > 60
+      ? `<span style="color:var(--red)"><i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> Alta probabilità di pioggia — considera di rimandare</span>`
+      : w0.pioggia > 30
+      ? `<span style="color:var(--amber)"><i class="ti ti-cloud-rain" style="vertical-align:-2px"></i> Possibili piogge — porta l'antipioggia</span>`
+      : `<span style="color:var(--green-d)"><i class="ti ti-check" style="vertical-align:-2px"></i> Condizioni favorevoli per partire</span>`;
+    meteoSummary = `<div style="background:var(--bg2);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <i class="ti ${ico.icon}" style="font-size:20px;color:var(--blue)"></i>
+      <div><strong>${ico.label}</strong> il ${dateLabel} · ${w0.tmax}°/${w0.tmin}° · Vento ${w0.vento} km/h<br>${warnMsg}</div>
+    </div>`;
+  }
+
+  panel.innerHTML = `<div class="result-inner">
+    <div class="route-header">
+      <div>
+        <div class="route-title">${route.titolo}</div>
+        <div class="route-sub">${route.sottotitolo}</div>
+      </div>
+      <span class="badge ${difClass[route.difficolta] || 'badge-green'}">${route.difficolta}</span>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val">${route.km_totali}</div><div class="stat-lbl">km totali</div></div>
+      <div class="stat-card"><div class="stat-val">${route.durata_ore}h</div><div class="stat-lbl">durata</div></div>
+      <div class="stat-card"><div class="stat-val">${route.tappe.length}</div><div class="stat-lbl">tappe</div></div>
+      <div class="stat-card"><div class="stat-val">${Math.round(route.km_totali / route.durata_ore)}</div><div class="stat-lbl">km/h media</div></div>
+    </div>
+
+    ${meteoSummary}
+
+    <div class="highlights">
+      <i class="ti ti-sparkles"></i> ${route.highlights}
+    </div>
+
+    ${stopHtml}
+
+    <div class="actions">
+      <button class="btn-action primary" onclick="downloadGPX()">
+        <i class="ti ti-download"></i> Scarica GPX
+      </button>
+      <button class="btn-action" onclick="openGoogleMaps()">
+        <i class="ti ti-map"></i> Google Maps
+      </button>
+      <button class="btn-action" onclick="copyRoute()">
+        <i class="ti ti-copy"></i> Copia testo
+      </button>
+      <button class="btn-action" onclick="shareRoute()">
+        <i class="ti ti-share"></i> Condividi
+      </button>
+    </div>
+  </div>`;
+
+  window._currentRoute = route;
+}
+
+/* ── download GPX ── */
+function downloadGPX() {
+  const route = window._currentRoute;
+  if (!route) return;
+  const wpts = route.tappe.map(t =>
+    `  <wpt lat="${t.lat}" lon="${t.lon}">\n    <name>${esc(t.nome)}</name>\n    <desc>${esc(t.descrizione)}</desc>\n  </wpt>`
+  ).join('\n');
+  const trkpts = route.tappe.map(t =>
+    `      <trkpt lat="${t.lat}" lon="${t.lon}"/>`
+  ).join('\n');
+  const gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="MotoRoute AI" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>${esc(route.titolo)}</name>
+    <desc>${esc(route.sottotitolo)}</desc>
+    <time>${new Date().toISOString()}</time>
+  </metadata>
+${wpts}
+  <trk>
+    <name>${esc(route.titolo)}</name>
+    <trkseg>
+${trkpts}
+    </trkseg>
+  </trk>
+</gpx>`;
+  const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = route.titolo.replace(/\s+/g, '_') + '.gpx';
+  a.click();
+}
+
+/* ── apri Google Maps ── */
+function openGoogleMaps() {
+  const route = window._currentRoute;
+  if (!route || !route.tappe.length) return;
+  const o = route.tappe[0];
+  const d = route.tappe[route.tappe.length - 1];
+  const wp = route.tappe.slice(1, -1).map(t => `${t.lat},${t.lon}`).join('|');
+  const url = `https://www.google.com/maps/dir/?api=1&origin=${o.lat},${o.lon}&destination=${d.lat},${d.lon}&waypoints=${wp}&travelmode=driving`;
+  window.open(url, '_blank');
+}
+
+/* ── copia testo ── */
+function copyRoute() {
+  const route = window._currentRoute;
+  if (!route) return;
+  const txt = `🏍️ ${route.titolo}\n${route.sottotitolo}\n\n` +
+    `📏 ${route.km_totali} km · ⏱️ ${route.durata_ore}h · ${route.difficolta}\n\n` +
+    `📍 Tappe:\n` +
+    route.tappe.map((t, i) => `${i+1}. ${t.nome} — ${t.descrizione}`).join('\n') +
+    `\n\n✨ ${route.highlights}\n\n` +
+    `Generato con MotoRoute AI`;
+  navigator.clipboard.writeText(txt).then(() => {
+    showToast('Testo copiato!');
+  }).catch(() => {});
+}
+
+/* ── condividi ── */
+function shareRoute() {
+  const route = window._currentRoute;
+  if (!route) return;
+  if (navigator.share) {
+    navigator.share({
+      title: `🏍️ ${route.titolo}`,
+      text: `${route.sottotitolo}\n${route.km_totali} km · ${route.durata_ore}h\n\nGenerato con MotoRoute AI`,
+      url: window.location.href
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(window.location.href).then(() => showToast('Link copiato!')).catch(() => {});
+  }
+}
+
+/* ── toast ── */
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.2s`;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.opacity = '1'; });
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2200);
+}
+
+/* ── escape XML ── */
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
