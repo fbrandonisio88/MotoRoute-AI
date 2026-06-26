@@ -4,825 +4,479 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>MotoRoute AI — Il tuo giro perfetto</title>
-<meta name="description" content="Genera itinerari in moto su misura con l'AI. Mappa interattiva, meteo per ogni tappa, download GPX."/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <style>
-  /* ── reset & base ── */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --green:   #1D9E75;
-    --green-l: #EAF3DE;
-    --green-d: #3B6D11;
-    --blue:    #185FA5;
-    --blue-l:  #E6F1FB;
-    --blue-d:  #0C447C;
-    --amber:   #BA7517;
-    --amber-l: #FAEEDA;
-    --amber-d: #854F0B;
-    --red:     #A32D2D;
-    --red-l:   #FCEBEB;
-    --gray:    #888780;
-    --bg:      #ffffff;
-    --bg2:     #f7f7f5;
-    --bg3:     #f0efec;
-    --txt:     #1a1a18;
-    --txt2:    #6b6a65;
-    --txt3:    #9b9a95;
-    --border:  rgba(0,0,0,0.10);
-    --border2: rgba(0,0,0,0.18);
-    --radius:  8px;
-    --radius-lg: 12px;
-    --shadow:  0 1px 3px rgba(0,0,0,0.08);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg:    #1a1a18;
-      --bg2:   #242422;
-      --bg3:   #2e2e2b;
-      --txt:   #f0efec;
-      --txt2:  #a0a09a;
-      --txt3:  #6b6a65;
-      --border:  rgba(255,255,255,0.10);
-      --border2: rgba(255,255,255,0.18);
-      --green-l: #0a3020;
-      --green-d: #9FE1CB;
-      --blue-l:  #051e38;
-      --blue-d:  #85B7EB;
-      --amber-l: #2a1e05;
-      --amber-d: #FAC775;
-      --red-l:   #2a0a0a;
-    }
-  }
-
-  html, body { height: 100%; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-    font-size: 15px; color: var(--txt); background: var(--bg); line-height: 1.5; }
-
-  /* ── layout ── */
-  .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 1.25rem; height: 52px;
-    border-bottom: 0.5px solid var(--border); flex-shrink: 0;
-    background: var(--bg);
-  }
-  .logo { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
-  .logo i { color: var(--green); font-size: 22px; }
-  .logo span { color: var(--txt2); font-weight: 400; font-size: 13px; margin-left: 4px; }
-
-  .main { display: flex; flex: 1; overflow: hidden; }
-
-  /* ── sidebar ── */
-  .sidebar {
-    width: 300px; flex-shrink: 0;
-    display: flex; flex-direction: column;
-    border-right: 0.5px solid var(--border);
-    background: var(--bg); overflow-y: auto;
-  }
-  .sidebar-inner { padding: 1rem; display: flex; flex-direction: column; gap: 14px; }
-
-  label.field-label {
-    display: block; font-size: 11px; font-weight: 600;
-    color: var(--txt3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px;
-  }
-  input[type=text], select, textarea {
-    width: 100%; padding: 8px 10px;
-    border: 0.5px solid var(--border2); border-radius: var(--radius);
-    background: var(--bg); color: var(--txt); font-size: 14px;
-    outline: none; transition: border-color 0.15s;
-    font-family: inherit;
-  }
-  input[type=text]:focus, select:focus, textarea:focus {
-    border-color: var(--green);
-    box-shadow: 0 0 0 3px rgba(29,158,117,0.12);
-  }
-  textarea { height: 68px; resize: none; line-height: 1.45; }
-
-  .range-row { display: flex; align-items: center; gap: 10px; }
-  input[type=range] {
-    flex: 1; accent-color: var(--green);
-    height: 4px; cursor: pointer;
-    background: var(--bg3); border-radius: 2px;
-    border: none; padding: 0;
-  }
-  .range-val { font-size: 13px; font-weight: 600; min-width: 50px; text-align: right; color: var(--txt); }
-
-  .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .cb-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--txt2);
-    cursor: pointer; padding: 4px 0; user-select: none; }
-  .cb-item input { width: 15px; height: 15px; accent-color: var(--green); cursor: pointer; }
-
-  .api-key-row { display: flex; gap: 6px; align-items: center; }
-  .api-key-row input { flex: 1; font-size: 13px; font-family: monospace; }
-  .btn-eye { background: none; border: none; cursor: pointer; color: var(--txt3); font-size: 18px;
-    padding: 0 4px; display: flex; align-items: center; }
-
-  .btn-gen {
-    width: 100%; padding: 11px;
-    background: var(--green); color: #fff; border: none;
-    border-radius: var(--radius); font-size: 14px; font-weight: 600;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: opacity 0.18s;
-  }
-  .btn-gen:hover { opacity: 0.87; }
-  .btn-gen:disabled { opacity: 0.45; cursor: not-allowed; }
-
-  .api-hint { font-size: 11px; color: var(--txt3); line-height: 1.5; }
-  .api-hint a { color: var(--blue); }
-
-  /* ── map + results column ── */
-  .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-  #map { flex: 1; min-height: 0; background: var(--bg3); }
-
-  /* ── result panel ── */
-  .result-panel {
-    height: 300px; flex-shrink: 0;
-    border-top: 0.5px solid var(--border);
-    overflow-y: auto; background: var(--bg);
-  }
-  .result-empty {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; color: var(--txt3); gap: 10px; font-size: 14px;
-  }
-  .result-empty i { font-size: 36px; opacity: 0.4; }
-
-  .result-inner { padding: 1rem 1.25rem; }
-
-  .route-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-  .route-title { font-size: 17px; font-weight: 600; }
-  .route-sub { font-size: 13px; color: var(--txt2); margin-top: 2px; }
-
-  .badge {
-    font-size: 11px; padding: 3px 10px; border-radius: 20px;
-    font-weight: 600; white-space: nowrap;
-  }
-  .badge-green { background: var(--green-l); color: var(--green-d); }
-  .badge-amber { background: var(--amber-l); color: var(--amber-d); }
-  .badge-red   { background: var(--red-l);   color: var(--red); }
-
-  .stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-  .stat-card {
-    background: var(--bg2); border-radius: var(--radius);
-    padding: 8px 14px; text-align: center; min-width: 70px;
-  }
-  .stat-val { font-size: 16px; font-weight: 600; }
-  .stat-lbl { font-size: 11px; color: var(--txt3); margin-top: 2px; }
-
-  .highlights {
-    font-size: 13px; color: var(--txt2); margin-bottom: 14px;
-    padding: 8px 12px; background: var(--bg2); border-radius: var(--radius);
-    border-left: 3px solid var(--green);
-  }
-  .highlights i { color: var(--green); margin-right: 4px; }
-
-  /* ── stops ── */
-  .stop-item {
-    display: flex; gap: 12px; padding: 10px 0;
-    border-bottom: 0.5px solid var(--border);
-    align-items: flex-start;
-  }
-  .stop-item:last-of-type { border-bottom: none; }
-  .stop-num {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: var(--green); color: #fff;
-    font-size: 11px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; margin-top: 1px;
-  }
-  .stop-content { flex: 1; }
-  .stop-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .stop-name { font-size: 14px; font-weight: 600; }
-  .stop-desc { font-size: 12px; color: var(--txt2); margin-top: 4px; line-height: 1.5; }
-  .stop-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-  .tag {
-    font-size: 11px; padding: 2px 8px; border-radius: 20px;
-    background: var(--bg2); color: var(--txt2);
-    border: 0.5px solid var(--border);
-  }
-  .tag-g { background: var(--green-l); color: var(--green-d); }
-  .tag-b { background: var(--blue-l); color: var(--blue-d); }
-  .tag-a { background: var(--amber-l); color: var(--amber-d); }
-
-  /* ── meteo chip ── */
-  .meteo-chip {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 11px; padding: 2px 8px; border-radius: 20px;
-    background: var(--blue-l); color: var(--blue-d);
-    border: 0.5px solid rgba(24,95,165,0.2);
-  }
-  .meteo-chip i { font-size: 13px; }
-  .meteo-chip.warn { background: var(--amber-l); color: var(--amber-d); }
-  .meteo-chip.alert { background: var(--red-l); color: var(--red); }
-
-  /* ── action buttons ── */
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px;
-    border-top: 0.5px solid var(--border); }
-  .btn-action {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; font-size: 13px; font-weight: 500;
-    border-radius: var(--radius); cursor: pointer;
-    border: 0.5px solid var(--border2);
-    background: transparent; color: var(--txt);
-    transition: background 0.15s;
-  }
-  .btn-action:hover { background: var(--bg2); }
-  .btn-action.primary { background: var(--green); color: #fff; border-color: var(--green); }
-  .btn-action.primary:hover { opacity: 0.87; background: var(--green); }
-
-  /* ── loading / spinner ── */
-  .spinner {
-    width: 18px; height: 18px; border-radius: 50%;
-    border: 2.5px solid rgba(255,255,255,0.4);
-    border-top-color: #fff;
-    animation: spin 0.75s linear infinite;
-    flex-shrink: 0;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-overlay {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; gap: 14px; color: var(--txt2);
-  }
-  .loading-overlay .sp2 {
-    width: 32px; height: 32px;
-    border: 3px solid var(--border2);
-    border-top-color: var(--green);
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
-  }
-
-  .error-box {
-    margin: 1rem; padding: 14px; border-radius: var(--radius);
-    background: var(--red-l); color: var(--red);
-    font-size: 13px; line-height: 1.5;
-  }
-  .error-box strong { display: block; margin-bottom: 4px; }
-
-  /* ── responsive ── */
-  @media (max-width: 700px) {
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 0.5px solid var(--border); }
-    .main { flex-direction: column; }
-    #map { min-height: 260px; }
-    .result-panel { height: auto; max-height: 400px; }
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-l:#EAF3DE;--green-d:#3B6D11;
+  --blue:#185FA5;--blue-l:#E6F1FB;--blue-d:#0C447C;
+  --amber:#BA7517;--amber-l:#FAEEDA;--amber-d:#854F0B;
+  --red:#A32D2D;--red-l:#FCEBEB;
+  --bg:#fff;--bg2:#f7f7f5;--bg3:#f0efec;
+  --txt:#1a1a18;--txt2:#6b6a65;--txt3:#9b9a95;
+  --border:rgba(0,0,0,.10);--border2:rgba(0,0,0,.18);
+  --radius:8px;--radius-lg:14px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a18;--bg2:#242422;--bg3:#2e2e2b;
+  --txt:#f0efec;--txt2:#a0a09a;--txt3:#6b6a65;
+  --border:rgba(255,255,255,.10);--border2:rgba(255,255,255,.18);
+  --green-l:#0a3020;--green-d:#9FE1CB;--blue-l:#051e38;--blue-d:#85B7EB;
+  --amber-l:#2a1e05;--amber-d:#FAC775;--red-l:#2a0a0a;
+}}
+html,body{height:100%;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;color:var(--txt);background:var(--bg);line-height:1.5}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;height:52px;border-bottom:.5px solid var(--border);flex-shrink:0;background:var(--bg);gap:12px}
+.logo{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;white-space:nowrap}
+.logo i{color:var(--green);font-size:22px}
+.logo-sub{color:var(--txt2);font-weight:400;font-size:13px;margin-left:4px}
+nav{display:flex;gap:2px}
+.nav-btn{padding:6px 14px;border-radius:var(--radius);border:none;background:transparent;color:var(--txt2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.nav-btn:hover{background:var(--bg2);color:var(--txt)}
+.nav-btn.active{background:var(--green);color:#fff}
+.btn-donate{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);background:#003087;color:#fff;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}
+.btn-donate:hover{opacity:.87}
+.page{display:none;flex:1;overflow:hidden}
+.page.active{display:flex}
+/* sidebar */
+.gen-layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:300px;flex-shrink:0;display:flex;flex-direction:column;border-right:.5px solid var(--border);background:var(--bg);overflow-y:auto}
+.sidebar-inner{padding:1rem;display:flex;flex-direction:column;gap:14px}
+.field-label{display:block;font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+input[type=text],input[type=date],select,textarea{width:100%;padding:8px 10px;border:.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--txt);font-size:14px;outline:none;transition:border-color .15s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.12)}
+textarea{height:68px;resize:none;line-height:1.45}
+.range-row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--green);height:4px;cursor:pointer;background:var(--bg3);border-radius:2px;border:none;padding:0}
+.range-val{font-size:13px;font-weight:600;min-width:50px;text-align:right}
+.cb-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cb-item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--txt2);cursor:pointer;padding:4px 0;user-select:none}
+.cb-item input{width:15px;height:15px;accent-color:var(--green);cursor:pointer}
+.btn-gen{width:100%;padding:11px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .18s}
+.btn-gen:hover{opacity:.87}
+.btn-gen:disabled{opacity:.45;cursor:not-allowed}
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#map{flex:1;min-height:0;background:var(--bg3)}
+.result-panel{height:300px;flex-shrink:0;border-top:.5px solid var(--border);overflow-y:auto;background:var(--bg)}
+.result-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--txt3);gap:10px;font-size:14px}
+.result-empty i{font-size:36px;opacity:.4}
+.ri{padding:1rem 1.25rem}
+.route-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.route-title{font-size:17px;font-weight:600}
+.route-sub{font-size:13px;color:var(--txt2);margin-top:2px}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;white-space:nowrap}
+.bg{background:var(--green-l);color:var(--green-d)}
+.ba{background:var(--amber-l);color:var(--amber-d)}
+.br{background:var(--red-l);color:var(--red)}
+.stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.sc{background:var(--bg2);border-radius:var(--radius);padding:8px 14px;text-align:center;min-width:70px}
+.sv{font-size:16px;font-weight:600}
+.sl{font-size:11px;color:var(--txt3);margin-top:2px}
+.highlights{font-size:13px;color:var(--txt2);margin-bottom:14px;padding:8px 12px;background:var(--bg2);border-radius:var(--radius);border-left:3px solid var(--green)}
+.stop-item{display:flex;gap:12px;padding:10px 0;border-bottom:.5px solid var(--border);align-items:flex-start}
+.stop-item:last-of-type{border-bottom:none}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.sc2{flex:1}
+.sname{font-size:14px;font-weight:600}
+.sdesc{font-size:12px;color:var(--txt2);margin-top:4px;line-height:1.5}
+.stags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg2);color:var(--txt2);border:.5px solid var(--border)}
+.tg{background:var(--green-l);color:var(--green-d)}
+.tb{background:var(--blue-l);color:var(--blue-d)}
+.ta{background:var(--amber-l);color:var(--amber-d)}
+.mc{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--blue-l);color:var(--blue-d)}
+.mc i{font-size:13px}
+.mc.warn{background:var(--amber-l);color:var(--amber-d)}
+.mc.alert{background:var(--red-l);color:var(--red)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:.5px solid var(--border)}
+.btn-a{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border-radius:var(--radius);cursor:pointer;border:.5px solid var(--border2);background:transparent;color:var(--txt);transition:background .15s}
+.btn-a:hover{background:var(--bg2)}
+.btn-a.p{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-a.p:hover{opacity:.87;background:var(--green)}
+.btn-a.fb{background:#1877F2;color:#fff;border-color:#1877F2}
+.btn-a.wa{background:#25D366;color:#fff;border-color:#25D366}
+.btn-a.tw{background:#000;color:#fff;border-color:#000}
+.spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:spin .75s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;color:var(--txt2)}
+.sp2{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .75s linear infinite}
+.err{margin:1rem;padding:14px;border-radius:var(--radius);background:var(--red-l);color:var(--red);font-size:13px;line-height:1.5}
+/* regioni */
+.reg-page{flex:1;overflow-y:auto;background:var(--bg)}
+.reg-inner{max-width:1100px;margin:0 auto;padding:1.5rem}
+.reg-page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.reg-page-sub{font-size:14px;color:var(--txt2);margin-bottom:1.5rem}
+.reg-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+.rf-btn{padding:6px 14px;border-radius:20px;border:.5px solid var(--border2);background:transparent;color:var(--txt2);font-size:13px;cursor:pointer;transition:all .15s}
+.rf-btn:hover,.rf-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
+.reg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.reg-card{border-radius:var(--radius-lg);border:.5px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;background:var(--bg)}
+.reg-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.10)}
+.rc-thumb{width:100%;height:160px;background:linear-gradient(135deg,var(--green-l),var(--blue-l));display:flex;align-items:center;justify-content:center;font-size:52px}
+.rc-body{padding:14px}
+.rc-reg{font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.rc-title{font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.3}
+.rc-desc{font-size:13px;color:var(--txt2);line-height:1.5;margin-bottom:10px}
+.rc-footer{display:flex;gap:8px;flex-wrap:wrap}
+/* modal */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem}
+.mo.open{display:flex}
+.mb{background:var(--bg);border-radius:var(--radius-lg);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.mb-thumb{width:100%;height:180px;background:linear-gradient(135deg,var(--green-l),var(--blue-l));display:flex;align-items:center;justify-content:center;font-size:72px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;position:relative}
+.mb-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mb-body{padding:1.5rem}
+.mb-reg{font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.mb-title{font-size:20px;font-weight:700;margin-bottom:8px}
+.mb-desc{font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:16px}
+.mb-stops{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.ms{display:flex;gap:10px;align-items:flex-start}
+.ms-num{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.ms-txt{font-size:13px;color:var(--txt2);line-height:1.5}
+.ms-name{font-weight:600;color:var(--txt)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .2s}
+@media(max-width:700px){
+  .sidebar{width:100%;border-right:none;border-bottom:.5px solid var(--border)}
+  .gen-layout{flex-direction:column}
+  #map{min-height:240px}
+  .result-panel{height:auto;max-height:380px}
+  .logo-sub{display:none}
+  .reg-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .reg-grid{grid-template-columns:1fr}
+  .nav-btn span{display:none}
+}
 </style>
 </head>
 <body>
-
 <div class="app">
+<header>
+  <div class="logo">
+    <i class="ti ti-motorbike"></i> MotoRoute AI
+    <span class="logo-sub">itinerari generati dall'AI</span>
+  </div>
+  <nav>
+    <button class="nav-btn active" id="tab-gen" onclick="showPage('gen')"><i class="ti ti-sparkles"></i> <span>Genera</span></button>
+    <button class="nav-btn" id="tab-reg" onclick="showPage('reg')"><i class="ti ti-map-2"></i> <span>Regioni</span></button>
+  </nav>
+  <a href="https://www.paypal.com/donate/?business=f.brandonisio88%40gmail.com&currency_code=EUR" target="_blank" class="btn-donate">
+    <i class="ti ti-heart"></i> Donazione
+  </a>
+</header>
 
-  <!-- header -->
-  <header>
-    <div class="logo">
-      <i class="ti ti-motorbike"></i>
-      MotoRoute AI
-      <span>itinerari generati dall'intelligenza artificiale</span>
+<!-- GENERA -->
+<div class="page active" id="page-gen">
+<div class="gen-layout">
+  <div class="sidebar"><div class="sidebar-inner">
+    <div><label class="field-label">Partenza</label><input type="text" id="start" placeholder="es. Bologna, Firenze…" value="Bologna"/></div>
+    <div><label class="field-label">Tipo di moto</label><select id="moto"><option value="sportiva">Sportiva / Naked</option><option value="adventure" selected>Adventure / Enduro</option><option value="touring">Touring / Custom</option><option value="qualsiasi">Qualsiasi</option></select></div>
+    <div><label class="field-label">Durata</label><div class="range-row"><input type="range" id="durataRange" min="1" max="10" step=".5" value="3" oninput="document.getElementById('durataVal').textContent=this.value+'h'"/><span class="range-val" id="durataVal">3h</span></div></div>
+    <div><label class="field-label">Distanza circa</label><div class="range-row"><input type="range" id="kmRange" min="50" max="600" step="10" value="200" oninput="document.getElementById('kmVal').textContent=this.value+' km'"/><span class="range-val" id="kmVal">200 km</span></div></div>
+    <div><label class="field-label">Stile</label><div class="cb-grid">
+      <label class="cb-item"><input type="checkbox" id="cb_passi" checked/> Passi alpini</label>
+      <label class="cb-item"><input type="checkbox" id="cb_panoramico" checked/> Panoramico</label>
+      <label class="cb-item"><input type="checkbox" id="cb_sterrato"/> Sterrato</label>
+      <label class="cb-item"><input type="checkbox" id="cb_costa"/> Costiero</label>
+      <label class="cb-item"><input type="checkbox" id="cb_cibo" checked/> Soste cibo</label>
+      <label class="cb-item"><input type="checkbox" id="cb_anello" checked/> Anello</label>
+    </div></div>
+    <div><label class="field-label">Data del giro</label><input type="date" id="dataGiro"/></div>
+    <div><label class="field-label">Note libere</label><textarea id="note" placeholder="es. evita autostrade, voglio vedere un castello…"></textarea></div>
+    <button class="btn-gen" id="btnGen" onclick="generateRoute()"><i class="ti ti-route"></i> Genera il mio itinerario</button>
+  </div></div>
+  <div class="content">
+    <div id="map"></div>
+    <div class="result-panel" id="resultPanel">
+      <div class="result-empty"><i class="ti ti-map-2"></i><span>Configura il giro e premi "Genera"</span></div>
     </div>
-    <a href="https://console.anthropic.com" target="_blank" style="font-size:12px;color:var(--txt3);text-decoration:none;">
-      <i class="ti ti-settings" style="vertical-align:-2px"></i> API
-    </a>
-  </header>
-
-  <div class="main">
-
-    <!-- sidebar / form -->
-    <div class="sidebar">
-      <div class="sidebar-inner">
-
-        <!-- API key -->
-        <div>
-          <label class="field-label">API Key Anthropic</label>
-          <div class="api-key-row">
-            <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off"/>
-            <button class="btn-eye" onclick="toggleKey()" title="Mostra/nascondi">
-              <i class="ti ti-eye" id="eyeIcon"></i>
-            </button>
-          </div>
-          <div class="api-hint" style="margin-top:5px">
-            Ottienila su <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
-            Non viene salvata né inviata a terzi.
-          </div>
-        </div>
-
-        <hr style="border:none;border-top:0.5px solid var(--border)"/>
-
-        <!-- partenza -->
-        <div>
-          <label class="field-label">Partenza</label>
-          <input type="text" id="start" placeholder="es. Bologna, Firenze, Trento…" value="Bologna"/>
-        </div>
-
-        <!-- moto -->
-        <div>
-          <label class="field-label">Tipo di moto</label>
-          <select id="moto">
-            <option value="sportiva">Sportiva / Naked</option>
-            <option value="adventure" selected>Adventure / Enduro</option>
-            <option value="touring">Touring / Custom</option>
-            <option value="qualsiasi">Qualsiasi tipo</option>
-          </select>
-        </div>
-
-        <!-- durata -->
-        <div>
-          <label class="field-label">Durata del giro</label>
-          <div class="range-row">
-            <input type="range" id="durataRange" min="1" max="10" step="0.5" value="3"
-              oninput="document.getElementById('durataVal').textContent=this.value+'h'"/>
-            <span class="range-val" id="durataVal">3h</span>
-          </div>
-        </div>
-
-        <!-- km -->
-        <div>
-          <label class="field-label">Distanza circa</label>
-          <div class="range-row">
-            <input type="range" id="kmRange" min="50" max="600" step="10" value="200"
-              oninput="document.getElementById('kmVal').textContent=this.value+' km'"/>
-            <span class="range-val" id="kmVal">200 km</span>
-          </div>
-        </div>
-
-        <!-- stile -->
-        <div>
-          <label class="field-label">Stile del percorso</label>
-          <div class="checkbox-grid">
-            <label class="cb-item"><input type="checkbox" id="cb_passi" checked/> Passi alpini</label>
-            <label class="cb-item"><input type="checkbox" id="cb_panoramico" checked/> Panoramico</label>
-            <label class="cb-item"><input type="checkbox" id="cb_sterrato"/> Sterrato / off-road</label>
-            <label class="cb-item"><input type="checkbox" id="cb_costa"/> Costiero</label>
-            <label class="cb-item"><input type="checkbox" id="cb_cibo" checked/> Soste gastronomiche</label>
-            <label class="cb-item"><input type="checkbox" id="cb_anello" checked/> Giro ad anello</label>
-          </div>
-        </div>
-
-        <!-- meteo -->
-        <div>
-          <label class="field-label">Data del giro</label>
-          <input type="date" id="dataGiro" style="width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--txt);font-size:14px;font-family:inherit;outline:none"/>
-        </div>
-
-        <!-- note -->
-        <div>
-          <label class="field-label">Note libere (opzionale)</label>
-          <textarea id="note" placeholder="es. evita autostrade, voglio vedere un castello, no sterrato lungo…"></textarea>
-        </div>
-
-        <!-- genera -->
-        <button class="btn-gen" id="btnGen" onclick="generateRoute()">
-          <i class="ti ti-route"></i> Genera il mio itinerario
-        </button>
-
-      </div>
-    </div>
-
-    <!-- mappa + risultato -->
-    <div class="content">
-      <div id="map"></div>
-      <div class="result-panel" id="resultPanel">
-        <div class="result-empty">
-          <i class="ti ti-map-2"></i>
-          <span>Configura il giro e premi "Genera"</span>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
+</div>
+
+<!-- REGIONI -->
+<div class="page" id="page-reg">
+<div class="reg-page"><div class="reg-inner">
+  <div class="reg-page-title">Itinerari per Regione</div>
+  <div class="reg-page-sub">Percorsi selezionati, pronti da seguire. Clicca per scoprire tappe e dettagli.</div>
+  <div class="reg-filter" id="regFilter"></div>
+  <div class="reg-grid" id="regGrid"></div>
+</div></div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div class="mo" id="mo" onclick="closeMo(event)">
+  <div class="mb" id="mb"><div id="mc"></div></div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-/* ── mappa ── */
-const map = L.map('map', { zoomControl: true }).setView([44.4, 11.3], 7);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
-  maxZoom: 18
-}).addTo(map);
-const routeLayer   = L.layerGroup().addTo(map);
-const markerLayer  = L.layerGroup().addTo(map);
+// ═══════════════════════════════════════
+// CONFIGURA QUI LA TUA API KEY
+// ═══════════════════════════════════════
+const API_KEY = 'INSERISCI_QUI_LA_TUA_API_KEY';
 
-/* ── imposta data default = oggi ── */
-(function() {
-  const el = document.getElementById('dataGiro');
-  const today = new Date();
-  el.value = today.toISOString().slice(0, 10);
-})();
-
-/* ── mostra/nascondi API key ── */
-function toggleKey() {
-  const inp = document.getElementById('apiKey');
-  const ico = document.getElementById('eyeIcon');
-  if (inp.type === 'password') {
-    inp.type = 'text';
-    ico.className = 'ti ti-eye-off';
-  } else {
-    inp.type = 'password';
-    ico.className = 'ti ti-eye';
-  }
+// NAV
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  if(id==='reg') renderRegioni();
+  if(id==='gen') setTimeout(()=>map.invalidateSize(),100);
 }
 
-/* ── main generate ── */
-async function generateRoute() {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) {
-    alert('Inserisci prima la tua API Key Anthropic nel campo in alto.');
-    return;
+// MAPPA
+const map=L.map('map',{zoomControl:true}).setView([44.4,11.3],7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(map);
+const rl=L.layerGroup().addTo(map), ml=L.layerGroup().addTo(map);
+document.getElementById('dataGiro').value=new Date().toISOString().slice(0,10);
+
+// AI GENERATOR
+async function generateRoute(){
+  const fd=getFormData(), btn=document.getElementById('btnGen'), panel=document.getElementById('resultPanel');
+  btn.disabled=true; btn.innerHTML='<div class="spinner"></div> Generando…';
+  panel.innerHTML='<div class="loading-overlay"><div class="sp2"></div><span>L\'AI sta pianificando il tuo giro…</span></div>';
+  try{
+    const route=await callAI(fd);
+    const weather=await fetchWeather(route.tappe,fd.data);
+    renderResult(route,weather,fd);
+  }catch(e){
+    panel.innerHTML=`<div class="err"><strong><i class="ti ti-alert-circle"></i> Errore</strong> ${e.message||'Controlla la API key e riprova.'}</div>`;
   }
-
-  const fd = getFormData();
-  const btn = document.getElementById('btnGen');
-  const panel = document.getElementById('resultPanel');
-
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Generando…';
-  panel.innerHTML = `<div class="loading-overlay"><div class="sp2"></div><span>L'AI sta pianificando il tuo giro…</span></div>`;
-
-  try {
-    const route = await callAI(apiKey, fd);
-    const weather = await fetchWeather(route.tappe, fd.data);
-    renderResult(route, weather, fd);
-  } catch(e) {
-    panel.innerHTML = `<div class="error-box"><strong><i class="ti ti-alert-circle"></i> Errore</strong>${e.message || 'Errore sconosciuto. Controlla la API key e riprova.'}</div>`;
-    console.error(e);
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = '<i class="ti ti-route"></i> Genera il mio itinerario';
+  btn.disabled=false; btn.innerHTML='<i class="ti ti-route"></i> Genera il mio itinerario';
 }
 
-/* ── legge il form ── */
-function getFormData() {
-  return {
-    start:      document.getElementById('start').value || 'Bologna',
-    moto:       document.getElementById('moto').value,
-    durata:     document.getElementById('durataRange').value,
-    km:         document.getElementById('kmRange').value,
-    passi:      document.getElementById('cb_passi').checked,
-    panoramico: document.getElementById('cb_panoramico').checked,
-    sterrato:   document.getElementById('cb_sterrato').checked,
-    costa:      document.getElementById('cb_costa').checked,
-    cibo:       document.getElementById('cb_cibo').checked,
-    anello:     document.getElementById('cb_anello').checked,
-    note:       document.getElementById('note').value,
-    data:       document.getElementById('dataGiro').value,
-  };
+function getFormData(){
+  return{start:document.getElementById('start').value||'Bologna',moto:document.getElementById('moto').value,
+    durata:document.getElementById('durataRange').value,km:document.getElementById('kmRange').value,
+    passi:document.getElementById('cb_passi').checked,panoramico:document.getElementById('cb_panoramico').checked,
+    sterrato:document.getElementById('cb_sterrato').checked,costa:document.getElementById('cb_costa').checked,
+    cibo:document.getElementById('cb_cibo').checked,anello:document.getElementById('cb_anello').checked,
+    note:document.getElementById('note').value,data:document.getElementById('dataGiro').value};
 }
 
-/* ── chiama Anthropic API ── */
-async function callAI(apiKey, fd) {
-  const stili = [
-    fd.passi      ? 'passi alpini / montagna' : '',
-    fd.panoramico ? 'strade panoramiche' : '',
-    fd.sterrato   ? 'tratti sterrati / off-road' : '',
-    fd.costa      ? 'percorso costiero' : '',
-    fd.cibo       ? 'soste gastronomiche tipiche' : '',
-    fd.anello     ? 'giro ad anello (ritorno al punto di partenza)' : '',
+async function callAI(fd){
+  const stili=[fd.passi?'passi alpini':'',fd.panoramico?'panoramico':'',fd.sterrato?'sterrato':'',
+    fd.costa?'costiero':'',fd.cibo?'soste gastronomiche':'',fd.anello?'anello':''
   ].filter(Boolean).join(', ');
-
-  const prompt = `Sei un esperto di percorsi in moto in Italia. Crea un itinerario dettagliato con queste caratteristiche:
-- Partenza: ${fd.start}
-- Tipo di moto: ${fd.moto}
-- Durata: ${fd.durata} ore
-- Distanza totale: circa ${fd.km} km
-- Stile: ${stili || 'libero'}
-- Note aggiuntive: ${fd.note || 'nessuna'}
-
-Rispondi SOLO con un oggetto JSON valido. Nessun testo fuori dal JSON, nessun markdown, nessun backtick.
-
-{
-  "titolo": "nome evocativo del percorso (max 6 parole)",
-  "sottotitolo": "descrizione breve in una frase",
-  "km_totali": <numero intero>,
-  "durata_ore": <numero>,
-  "difficolta": "Facile|Media|Impegnativa",
-  "highlights": "frase con 2-3 elementi salienti del percorso",
-  "tappe": [
-    {
-      "nome": "nome del luogo reale",
-      "lat": <latitudine decimale precisa>,
-      "lon": <longitudine decimale precisa>,
-      "descrizione": "cosa fare o vedere, max 2 righe",
-      "tipo": "partenza|percorso|sosta_cibo|punto_panoramico|passo|arrivo",
-      "km_da_inizio": <numero>,
-      "tempo_min": <minuti di guida dalla tappa precedente>
-    }
-  ]
-}
-
-Le tappe devono essere 6-9. Usa SOLO luoghi reali in Italia con coordinate accurate. Includi sempre una tappa di partenza e una di arrivo.`;
-
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-calls': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }]
-    })
+  const prompt=`Sei un esperto di percorsi in moto in Italia. Crea un itinerario:
+Partenza: ${fd.start}, Moto: ${fd.moto}, Durata: ${fd.durata}h, Distanza: ${fd.km}km, Stile: ${stili||'libero'}, Note: ${fd.note||'nessuna'}
+Rispondi SOLO JSON valido senza markdown:
+{"titolo":"max 6 parole","sottotitolo":"una frase","km_totali":N,"durata_ore":N,"difficolta":"Facile|Media|Impegnativa","highlights":"2-3 punti salienti","tappe":[{"nome":"luogo reale","lat":N,"lon":N,"descrizione":"max 2 righe","tipo":"partenza|percorso|sosta_cibo|punto_panoramico|passo|arrivo","km_da_inizio":N,"tempo_min":N}]}
+6-9 tappe con coordinate italiane accurate.`;
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
   });
-
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err.error?.message || `Errore API ${resp.status}`);
-  }
-
-  const data = await resp.json();
-  let text = data.content.map(b => b.text || '').join('');
-  text = text.replace(/```json|```/g, '').trim();
+  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||`Errore ${resp.status}`);}
+  const data=await resp.json();
+  let text=data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
   return JSON.parse(text);
 }
 
-/* ── fetch meteo da open-meteo (gratuito, no key) ── */
-async function fetchWeather(tappe, data) {
-  if (!tappe || tappe.length === 0) return {};
-  const dateStr = data || new Date().toISOString().slice(0, 10);
-
-  const results = {};
-  // fetch meteo solo per 3 tappe rappresentative (inizio, metà, fine) per non sovraccaricare
-  const indices = [0, Math.floor(tappe.length / 2), tappe.length - 1];
-  const selected = [...new Set(indices)];
-
-  await Promise.all(selected.map(async (i) => {
-    const t = tappe[i];
-    try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${t.lat}&longitude=${t.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max,weathercode&timezone=Europe/Rome&start_date=${dateStr}&end_date=${dateStr}`;
-      const r = await fetch(url);
-      const d = await r.json();
-      if (d.daily && d.daily.temperature_2m_max) {
-        results[i] = {
-          tmax:   Math.round(d.daily.temperature_2m_max[0]),
-          tmin:   Math.round(d.daily.temperature_2m_min[0]),
-          pioggia: Math.round(d.daily.precipitation_probability_max[0]),
-          vento:  Math.round(d.daily.windspeed_10m_max[0]),
-          code:   d.daily.weathercode[0],
-        };
-      }
-    } catch(e) { /* ignora errori meteo silenziosamente */ }
+async function fetchWeather(tappe,data){
+  if(!tappe?.length) return {};
+  const ds=data||new Date().toISOString().slice(0,10), res={};
+  const idx=[...new Set([0,Math.floor(tappe.length/2),tappe.length-1])];
+  await Promise.all(idx.map(async i=>{
+    try{const t=tappe[i];
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${t.lat}&longitude=${t.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max,weathercode&timezone=Europe/Rome&start_date=${ds}&end_date=${ds}`);
+      const d=await r.json();
+      if(d.daily?.temperature_2m_max) res[i]={tmax:Math.round(d.daily.temperature_2m_max[0]),tmin:Math.round(d.daily.temperature_2m_min[0]),pioggia:Math.round(d.daily.precipitation_probability_max[0]),vento:Math.round(d.daily.windspeed_10m_max[0]),code:d.daily.weathercode[0]};
+    }catch(e){}
   }));
-
-  return results;
+  return res;
 }
 
-/* ── WMO weather code → icona e descrizione ── */
-function wmoToIcon(code) {
-  if (code === 0)               return { icon: 'ti-sun',            label: 'Sole' };
-  if (code <= 2)                return { icon: 'ti-cloud',          label: 'Parzialmente nuvoloso' };
-  if (code === 3)               return { icon: 'ti-cloud',          label: 'Nuvoloso' };
-  if (code <= 49)               return { icon: 'ti-cloud-fog',      label: 'Nebbia' };
-  if (code <= 59)               return { icon: 'ti-cloud-drizzle',  label: 'Pioggerella' };
-  if (code <= 69)               return { icon: 'ti-cloud-rain',     label: 'Pioggia' };
-  if (code <= 79)               return { icon: 'ti-snowflake',      label: 'Neve' };
-  if (code <= 84)               return { icon: 'ti-cloud-rain',     label: 'Rovesci' };
-  if (code <= 99)               return { icon: 'ti-storm',          label: 'Temporale' };
-  return { icon: 'ti-cloud', label: 'Variabile' };
+function wmo(c){
+  if(c===0)return{i:'ti-sun',l:'Sole'};if(c<=2)return{i:'ti-cloud-sun',l:'Parz. nuvoloso'};
+  if(c===3)return{i:'ti-cloud',l:'Nuvoloso'};if(c<=49)return{i:'ti-cloud-fog',l:'Nebbia'};
+  if(c<=59)return{i:'ti-cloud-drizzle',l:'Pioggerella'};if(c<=69)return{i:'ti-cloud-rain',l:'Pioggia'};
+  if(c<=79)return{i:'ti-snowflake',l:'Neve'};if(c<=84)return{i:'ti-cloud-rain',l:'Rovesci'};
+  if(c<=99)return{i:'ti-storm',l:'Temporale'};return{i:'ti-cloud',l:'Variabile'};
 }
 
-/* ── render risultato ── */
-function renderResult(route, weather, fd) {
-  const panel = document.getElementById('resultPanel');
-  routeLayer.clearLayers();
-  markerLayer.clearLayers();
-
-  // disegna polyline
-  const coords = route.tappe.map(t => [t.lat, t.lon]);
-  if (coords.length > 1) {
-    L.polyline(coords, { color: '#1D9E75', weight: 4.5, opacity: 0.88 }).addTo(routeLayer);
-  }
-
-  // marker per ogni tappa
-  route.tappe.forEach((t, i) => {
-    const isStart = i === 0;
-    const isEnd   = i === route.tappe.length - 1;
-    const bg = isStart ? '#1D9E75' : isEnd ? '#A32D2D' : '#185FA5';
-    const icon = L.divIcon({
-      html: `<div style="width:24px;height:24px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.35)">${i+1}</div>`,
-      iconSize: [24, 24], iconAnchor: [12, 12], className: ''
-    });
-    L.marker([t.lat, t.lon], { icon })
-      .bindPopup(`<b>${t.nome}</b><br><small style="color:#555">${t.descrizione}</small>`)
-      .addTo(markerLayer);
+function renderResult(route,weather,fd){
+  const panel=document.getElementById('resultPanel');
+  rl.clearLayers(); ml.clearLayers();
+  const coords=route.tappe.map(t=>[t.lat,t.lon]);
+  if(coords.length>1) L.polyline(coords,{color:'#1D9E75',weight:4.5,opacity:.88}).addTo(rl);
+  route.tappe.forEach((t,i)=>{
+    const bg=i===0?'#1D9E75':i===route.tappe.length-1?'#A32D2D':'#185FA5';
+    const icon=L.divIcon({html:`<div style="width:24px;height:24px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)">${i+1}</div>`,iconSize:[24,24],iconAnchor:[12,12],className:''});
+    L.marker([t.lat,t.lon],{icon}).bindPopup(`<b>${t.nome}</b><br><small>${t.descrizione}</small>`).addTo(ml);
   });
-
-  // fit bounds
-  if (coords.length) map.fitBounds(L.latLngBounds(coords), { padding: [32, 32] });
-
-  // badge difficoltà
-  const difClass = { Facile: 'badge-green', Media: 'badge-amber', Impegnativa: 'badge-red' };
-
-  // tipo tappa → icona
-  const tipoIcon = {
-    partenza:         'ti-flag-2',
-    arrivo:           'ti-flag-checkered',
-    percorso:         'ti-road',
-    sosta_cibo:       'ti-tools-kitchen-2',
-    punto_panoramico: 'ti-mountain',
-    passo:            'ti-chevrons-up',
-  };
-  const tipoLabel = {
-    partenza: 'Partenza', arrivo: 'Arrivo', percorso: 'Percorso',
-    sosta_cibo: 'Sosta cibo', punto_panoramico: 'Panorama', passo: 'Passo',
-  };
-  const tipoTagClass = {
-    partenza: 'tag-g', arrivo: 'tag-g', sosta_cibo: 'tag-a',
-    punto_panoramico: 'tag-b', passo: 'tag-b',
-  };
-
-  // indici meteo rappresentativi
-  const wIndices = [0, Math.floor(route.tappe.length/2), route.tappe.length-1];
-  const wSet = new Set([...new Set(wIndices)]);
-  let wIdx = 0;
-
-  // costruisci tappe HTML
-  const stopHtml = route.tappe.map((t, i) => {
-    // trova se questa tappa ha meteo
-    let meteoHtml = '';
-    if (weather[i] !== undefined) {
-      const w = weather[i];
-      const ico = wmoToIcon(w.code);
-      const warnClass = w.pioggia > 60 ? 'alert' : w.pioggia > 30 ? 'warn' : '';
-      meteoHtml = `
-        <span class="meteo-chip ${warnClass}">
-          <i class="ti ${ico.icon}"></i>
-          ${w.tmax}° / ${w.tmin}° · Pioggia ${w.pioggia}% · Vento ${w.vento} km/h
-        </span>`;
-    }
-
-    const tagClass = tipoTagClass[t.tipo] || '';
-    const iconName = tipoIcon[t.tipo] || 'ti-map-pin';
-    const label    = tipoLabel[t.tipo] || t.tipo;
-
-    return `<div class="stop-item">
-      <div class="stop-num">${i+1}</div>
-      <div class="stop-content">
-        <div class="stop-header">
-          <span class="stop-name"><i class="ti ${iconName}" style="vertical-align:-2px;margin-right:4px;color:var(--green)"></i>${t.nome}</span>
-        </div>
-        <div class="stop-desc">${t.descrizione}</div>
-        <div class="stop-tags">
-          <span class="tag ${tagClass}">${label}</span>
-          ${t.km_da_inizio ? `<span class="tag">${t.km_da_inizio} km</span>` : ''}
-          ${t.tempo_min    ? `<span class="tag"><i class="ti ti-clock" style="vertical-align:-1px"></i> ${t.tempo_min} min</span>` : ''}
-          ${meteoHtml}
-        </div>
+  if(coords.length) map.fitBounds(L.latLngBounds(coords),{padding:[32,32]});
+  const dc={Facile:'bg',Media:'ba',Impegnativa:'br'};
+  const ti={partenza:'ti-flag-2',arrivo:'ti-flag-checkered',percorso:'ti-road',sosta_cibo:'ti-tools-kitchen-2',punto_panoramico:'ti-mountain',passo:'ti-chevrons-up'};
+  const tl={partenza:'Partenza',arrivo:'Arrivo',percorso:'Percorso',sosta_cibo:'Sosta cibo',punto_panoramico:'Panorama',passo:'Passo'};
+  const tc={partenza:'tg',arrivo:'tg',sosta_cibo:'ta',punto_panoramico:'tb',passo:'tb'};
+  const stopsHtml=route.tappe.map((t,i)=>{
+    let mh='';
+    if(weather[i]){const w=weather[i];const wc=wmo(w.code);const cl=w.pioggia>60?'alert':w.pioggia>30?'warn':'';
+      mh=`<span class="mc ${cl}"><i class="ti ${wc.i}"></i>${w.tmax}°/${w.tmin}° · ${w.pioggia}% pioggia · ${w.vento}km/h</span>`;}
+    return `<div class="stop-item"><div class="sn">${i+1}</div><div class="sc2">
+      <div class="sname"><i class="ti ${ti[t.tipo]||'ti-map-pin'}" style="vertical-align:-2px;margin-right:4px;color:var(--green)"></i>${t.nome}</div>
+      <div class="sdesc">${t.descrizione}</div>
+      <div class="stags"><span class="tag ${tc[t.tipo]||''}">${tl[t.tipo]||t.tipo}</span>
+        ${t.km_da_inizio?`<span class="tag">${t.km_da_inizio} km</span>`:''}
+        ${t.tempo_min?`<span class="tag"><i class="ti ti-clock" style="vertical-align:-1px"></i> ${t.tempo_min} min</span>`:''}
+        ${mh}
       </div>
-    </div>`;
+    </div></div>`;
   }).join('');
-
-  // meteo summary (tappa 0 se disponibile)
-  let meteoSummary = '';
-  const w0 = weather[0];
-  if (w0) {
-    const ico = wmoToIcon(w0.code);
-    const dateLabel = fd.data ? new Date(fd.data+'T12:00:00').toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'long'}) : 'oggi';
-    const warnMsg = w0.pioggia > 60
-      ? `<span style="color:var(--red)"><i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> Alta probabilità di pioggia — considera di rimandare</span>`
-      : w0.pioggia > 30
-      ? `<span style="color:var(--amber)"><i class="ti ti-cloud-rain" style="vertical-align:-2px"></i> Possibili piogge — porta l'antipioggia</span>`
-      : `<span style="color:var(--green-d)"><i class="ti ti-check" style="vertical-align:-2px"></i> Condizioni favorevoli per partire</span>`;
-    meteoSummary = `<div style="background:var(--bg2);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <i class="ti ${ico.icon}" style="font-size:20px;color:var(--blue)"></i>
-      <div><strong>${ico.label}</strong> il ${dateLabel} · ${w0.tmax}°/${w0.tmin}° · Vento ${w0.vento} km/h<br>${warnMsg}</div>
-    </div>`;
-  }
-
-  panel.innerHTML = `<div class="result-inner">
-    <div class="route-header">
-      <div>
-        <div class="route-title">${route.titolo}</div>
-        <div class="route-sub">${route.sottotitolo}</div>
-      </div>
-      <span class="badge ${difClass[route.difficolta] || 'badge-green'}">${route.difficolta}</span>
-    </div>
-
+  const w0=weather[0];let ms='';
+  if(w0){const ico=wmo(w0.code);const dl=fd.data?new Date(fd.data+'T12:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'long'}):'oggi';
+    const wm=w0.pioggia>60?`<span style="color:var(--red)"><i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> Alta probabilità pioggia</span>`:w0.pioggia>30?`<span style="color:var(--amber)"><i class="ti ti-cloud-rain" style="vertical-align:-2px"></i> Porta l'antipioggia</span>`:`<span style="color:var(--green-d)"><i class="ti ti-check" style="vertical-align:-2px"></i> Condizioni favorevoli</span>`;
+    ms=`<div style="background:var(--bg2);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><i class="ti ${ico.i}" style="font-size:20px;color:var(--blue)"></i><div><strong>${ico.l}</strong> il ${dl} · ${w0.tmax}°/${w0.tmin}° · Vento ${w0.vento}km/h<br>${wm}</div></div>`;}
+  const st=encodeURIComponent(`🏍️ ${route.titolo}\n${route.sottotitolo}\n${route.km_totali}km · ${route.durata_ore}h\n\nGenerato con MotoRoute AI`);
+  const su=encodeURIComponent(window.location.href);
+  panel.innerHTML=`<div class="ri">
+    <div class="route-header"><div><div class="route-title">${route.titolo}</div><div class="route-sub">${route.sottotitolo}</div></div>
+      <span class="badge ${dc[route.difficolta]||'bg'}">${route.difficolta}</span></div>
     <div class="stats-row">
-      <div class="stat-card"><div class="stat-val">${route.km_totali}</div><div class="stat-lbl">km totali</div></div>
-      <div class="stat-card"><div class="stat-val">${route.durata_ore}h</div><div class="stat-lbl">durata</div></div>
-      <div class="stat-card"><div class="stat-val">${route.tappe.length}</div><div class="stat-lbl">tappe</div></div>
-      <div class="stat-card"><div class="stat-val">${Math.round(route.km_totali / route.durata_ore)}</div><div class="stat-lbl">km/h media</div></div>
+      <div class="sc"><div class="sv">${route.km_totali}</div><div class="sl">km totali</div></div>
+      <div class="sc"><div class="sv">${route.durata_ore}h</div><div class="sl">durata</div></div>
+      <div class="sc"><div class="sv">${route.tappe.length}</div><div class="sl">tappe</div></div>
+      <div class="sc"><div class="sv">${Math.round(route.km_totali/route.durata_ore)}</div><div class="sl">km/h media</div></div>
     </div>
-
-    ${meteoSummary}
-
-    <div class="highlights">
-      <i class="ti ti-sparkles"></i> ${route.highlights}
-    </div>
-
-    ${stopHtml}
-
+    ${ms}
+    <div class="highlights"><i class="ti ti-sparkles" style="color:var(--green)"></i> ${route.highlights}</div>
+    ${stopsHtml}
     <div class="actions">
-      <button class="btn-action primary" onclick="downloadGPX()">
-        <i class="ti ti-download"></i> Scarica GPX
-      </button>
-      <button class="btn-action" onclick="openGoogleMaps()">
-        <i class="ti ti-map"></i> Google Maps
-      </button>
-      <button class="btn-action" onclick="copyRoute()">
-        <i class="ti ti-copy"></i> Copia testo
-      </button>
-      <button class="btn-action" onclick="shareRoute()">
-        <i class="ti ti-share"></i> Condividi
-      </button>
+      <button class="btn-a p" onclick="downloadGPX()"><i class="ti ti-download"></i> GPX</button>
+      <button class="btn-a" onclick="openGMaps()"><i class="ti ti-map"></i> Google Maps</button>
+      <button class="btn-a fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${su}&quote=${st}','_blank')"><i class="ti ti-brand-facebook"></i> Facebook</button>
+      <button class="btn-a wa" onclick="window.open('https://wa.me/?text=${st}%20${su}','_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+      <button class="btn-a tw" onclick="window.open('https://twitter.com/intent/tweet?text=${st}&url=${su}','_blank')"><i class="ti ti-brand-x"></i> X</button>
+      <button class="btn-a" onclick="copyRoute()"><i class="ti ti-copy"></i> Copia</button>
     </div>
   </div>`;
-
-  window._currentRoute = route;
+  window._cr=route;
 }
 
-/* ── download GPX ── */
-function downloadGPX() {
-  const route = window._currentRoute;
-  if (!route) return;
-  const wpts = route.tappe.map(t =>
-    `  <wpt lat="${t.lat}" lon="${t.lon}">\n    <name>${esc(t.nome)}</name>\n    <desc>${esc(t.descrizione)}</desc>\n  </wpt>`
-  ).join('\n');
-  const trkpts = route.tappe.map(t =>
-    `      <trkpt lat="${t.lat}" lon="${t.lon}"/>`
-  ).join('\n');
-  const gpx = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="MotoRoute AI" xmlns="http://www.topografix.com/GPX/1/1">
-  <metadata>
-    <name>${esc(route.titolo)}</name>
-    <desc>${esc(route.sottotitolo)}</desc>
-    <time>${new Date().toISOString()}</time>
-  </metadata>
-${wpts}
-  <trk>
-    <name>${esc(route.titolo)}</name>
-    <trkseg>
-${trkpts}
-    </trkseg>
-  </trk>
-</gpx>`;
-  const blob = new Blob([gpx], { type: 'application/gpx+xml' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = route.titolo.replace(/\s+/g, '_') + '.gpx';
-  a.click();
+function downloadGPX(){
+  const r=window._cr; if(!r) return;
+  const w=r.tappe.map(t=>`  <wpt lat="${t.lat}" lon="${t.lon}">\n    <name>${x(t.nome)}</name><desc>${x(t.descrizione)}</desc>\n  </wpt>`).join('\n');
+  const trk=r.tappe.map(t=>`      <trkpt lat="${t.lat}" lon="${t.lon}"/>`).join('\n');
+  const gpx=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="MotoRoute AI" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>${x(r.titolo)}</name></metadata>\n${w}\n  <trk><name>${x(r.titolo)}</name><trkseg>\n${trk}\n  </trkseg></trk>\n</gpx>`;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'})); a.download=r.titolo.replace(/\s+/g,'_')+'.gpx'; a.click();
+}
+function openGMaps(){
+  const r=window._cr; if(!r) return;
+  const o=r.tappe[0],d=r.tappe[r.tappe.length-1],wp=r.tappe.slice(1,-1).map(t=>`${t.lat},${t.lon}`).join('|');
+  window.open(`https://www.google.com/maps/dir/?api=1&origin=${o.lat},${o.lon}&destination=${d.lat},${d.lon}&waypoints=${wp}&travelmode=driving`,'_blank');
+}
+function copyRoute(){
+  const r=window._cr; if(!r) return;
+  navigator.clipboard.writeText(`🏍️ ${r.titolo}\n${r.sottotitolo}\n\n📏 ${r.km_totali}km · ⏱️ ${r.durata_ore}h\n\n📍 Tappe:\n`+r.tappe.map((t,i)=>`${i+1}. ${t.nome} — ${t.descrizione}`).join('\n')+'\n\nGenerato con MotoRoute AI').then(()=>toast('Testo copiato!')).catch(()=>{});
 }
 
-/* ── apri Google Maps ── */
-function openGoogleMaps() {
-  const route = window._currentRoute;
-  if (!route || !route.tappe.length) return;
-  const o = route.tappe[0];
-  const d = route.tappe[route.tappe.length - 1];
-  const wp = route.tappe.slice(1, -1).map(t => `${t.lat},${t.lon}`).join('|');
-  const url = `https://www.google.com/maps/dir/?api=1&origin=${o.lat},${o.lon}&destination=${d.lat},${d.lon}&waypoints=${wp}&travelmode=driving`;
-  window.open(url, '_blank');
+// REGIONI
+const RD=[
+  {id:1,r:'Lombardia',z:'Nord',e:'🏔️',t:'Triangolo Lariano',d:'Un giro spettacolare tra i laghi più belli d\'Italia, con curve panoramiche sul Lago di Como e viste sulle Prealpi.',km:180,h:'4h',df:'Media',
+   tappe:[{n:'Como',d:'Punto di partenza, lungolago e ville liberty'},{n:'Bellagio',d:'Il balcone dei laghi'},{n:'Lecco',d:'Centro storico e il ponte Azzone Visconti'},{n:'Bergamo Alta',d:'Città medievale, mura veneziane UNESCO'},{n:'Como',d:'Rientro via Valassina'}]},
+  {id:2,r:'Lombardia',z:'Nord',e:'⛰️',t:'Stelvio & Mortirolo',d:'Due passi leggendari in una giornata. Il Passo dello Stelvio con i suoi 48 tornanti e il temuto Mortirolo.',km:260,h:'6h',df:'Impegnativa',
+   tappe:[{n:'Bormio',d:'Base di partenza, terme e centro storico'},{n:'Passo dello Stelvio',d:'2758m, 48 tornanti, vista sulle Alpi Retiche'},{n:'Santa Maria Valvenosta',d:'Pausa in Val Venosta'},{n:'Aprica',d:'Valico tra Valtellina e Val Camonica'},{n:'Mortirolo',d:'Il passo che ha fatto piangere i campioni'},{n:'Bormio',d:'Ritorno tra i pascoli valtellinesi'}]},
+  {id:3,r:'Lombardia',z:'Nord',e:'🌊',t:'Gardesana Occidentale',d:'La strada più bella del Garda, scavata nella roccia a picco sul lago. Gallerie, curve e viste mozzafiato.',km:140,h:'3h',df:'Facile',
+   tappe:[{n:'Desenzano del Garda',d:'Partenza dal Basso Garda'},{n:'Salò',d:'Lungolago elegante'},{n:'Gargnano',d:'Borgo medievale e limonaie storiche'},{n:'Limone sul Garda',d:'Il paese dei limoni'},{n:'Riva del Garda',d:'Capolinea nord, cascata del Varone'}]},
+  {id:4,r:'Toscana',z:'Centro',e:'🌾',t:'Chianti Classico',d:'Cipressi, vigneti, borghi medievali e strade bianche. Il cuore della Toscana tra Firenze e Siena.',km:150,h:'3.5h',df:'Facile',
+   tappe:[{n:'Firenze',d:'Partenza dalla culla del Rinascimento'},{n:'Greve in Chianti',d:'Piazza medievale, produttori di vino'},{n:'Radda in Chianti',d:'Borgo murato con vista sulle colline'},{n:'Castellina in Chianti',d:'Rocca medievale e cantine storiche'},{n:'Siena',d:'Arrivo in Piazza del Campo'}]},
+  {id:5,r:'Toscana',z:'Centro',e:'🐴',t:'Val d\'Orcia & Maremma',d:'Le colline senesi, i cipressi e la costa maremmana in un percorso che unisce arte, natura e gusto.',km:220,h:'5h',df:'Facile',
+   tappe:[{n:'Siena',d:'Partenza'},{n:'Pienza',d:'La città ideale del Rinascimento'},{n:'Montalcino',d:'Rocca medievale e Brunello'},{n:'Pitigliano',d:'La piccola Gerusalemme tufacea'},{n:'Orbetello',d:'Laguna e Argentario'},{n:'Grosseto',d:'Rientro in Maremma'}]},
+  {id:6,r:'Toscana',z:'Centro',e:'⛏️',t:'Versilia & Cave di Carrara',d:'Dalla Versilia alle Alpi Apuane e alle cave di marmo bianco: un percorso di contrasti sorprendenti.',km:170,h:'4h',df:'Media',
+   tappe:[{n:'Viareggio',d:'Lungomare art déco'},{n:'Forte dei Marmi',d:'La perla della Versilia'},{n:'Carrara',d:'Le cave di marmo bianco, spettacolo unico'},{n:'Pontremoli',d:'Borgo medievale in Val di Magra'},{n:'La Spezia',d:'Il Golfo dei Poeti'}]},
+  {id:7,r:'Sicilia',z:'Sud',e:'🌋',t:'Giro dell\'Etna',d:'Girare intorno al vulcano più alto d\'Europa: lava, borghi barocchi e mare cristallino ionio.',km:200,h:'5h',df:'Media',
+   tappe:[{n:'Catania',d:'Partenza ai piedi dell\'Etna'},{n:'Zafferana Etnea',d:'Borghi del versante est'},{n:'Rifugio Sapienza',d:'1923m, vista sul cratere'},{n:'Randazzo',d:'Borgo medievale in pietra lavica'},{n:'Taormina',d:'Il balcone della Sicilia'},{n:'Catania',d:'Rientro lungo la costa ionica'}]},
+  {id:8,r:'Sicilia',z:'Sud',e:'🏛️',t:'Valle dei Templi',d:'L\'entroterra siciliano: siti UNESCO, colline dorate e borghi dimenticati tra Palermo e Agrigento.',km:180,h:'4h',df:'Facile',
+   tappe:[{n:'Palermo',d:'Partenza'},{n:'Corleone',d:'I Monti Sicani'},{n:'Agrigento',d:'Valle dei Templi UNESCO'},{n:'Sciacca',d:'Città termale sul Mediterraneo'},{n:'Selinunte',d:'Parco archeologico immenso'},{n:'Mazara del Vallo',d:'Porto e quartiere arabo-normanno'}]},
+  {id:9,r:'Sicilia',z:'Sud',e:'🌊',t:'Costa Nord & Cefalù',d:'La costa tirrenica: Riserva dello Zingaro, San Vito Lo Capo e la splendida Cefalù normanna.',km:160,h:'3.5h',df:'Facile',
+   tappe:[{n:'Palermo',d:'Partenza'},{n:'Mondello',d:'La spiaggia art nouveau di Palermo'},{n:'Riserva dello Zingaro',d:'Prima riserva naturale siciliana'},{n:'San Vito Lo Capo',d:'Spiaggia da cartolina'},{n:'Cefalù',d:'Duomo normanno sul mare'}]},
+  {id:10,r:'Trentino-Alto Adige',z:'Nord',e:'🏔️',t:'Sella Ronda',d:'Il giro più famoso delle Dolomiti UNESCO: quattro passi, quattro valli, paesaggi da togliere il fiato.',km:120,h:'4h',df:'Media',
+   tappe:[{n:'Canazei',d:'Partenza in Val di Fassa'},{n:'Passo Pordoi',d:'2239m, il Re dei Passi'},{n:'Arabba',d:'Vista sulla Marmolada'},{n:'Corvara',d:'Perla dell\'Alta Badia'},{n:'Passo Gardena',d:'2121m, vista sulle Odle'},{n:'Selva Gardena',d:'Borgo tirolese'},{n:'Passo Sella',d:'2244m, ritorno'},{n:'Canazei',d:'Anello completato'}]},
+  {id:11,r:'Trentino-Alto Adige',z:'Nord',e:'⛰️',t:'Tre Cime & Cortina',d:'Le Tre Cime di Lavaredo e Cortina d\'Ampezzo: l\'itinerario icona delle Dolomiti.',km:150,h:'4h',df:'Media',
+   tappe:[{n:'Dobbiaco',d:'Val Pusteria, partenza'},{n:'Tre Cime di Lavaredo',d:'2333m, l\'anfiteatro più fotografato delle Dolomiti'},{n:'Misurina',d:'Il lago specchio delle Tre Cime'},{n:'Cortina d\'Ampezzo',d:'La Regina delle Dolomiti'},{n:'Passo Falzarego',d:'2117m'},{n:'Dobbiaco',d:'Rientro'}]},
+  {id:12,r:'Campania',z:'Sud',e:'🌊',t:'Costiera Amalfitana',d:'La SS163 è una delle strade più belle del mondo: curve a gomito, strapiombi sul mare, borghi colorati.',km:100,h:'3h',df:'Media',
+   tappe:[{n:'Sorrento',d:'Partenza sul Golfo di Napoli'},{n:'Positano',d:'Il gioiello verticale della Costiera'},{n:'Praiano',d:'Borgo nascosto e autentico'},{n:'Amalfi',d:'Duomo arabo-normanno'},{n:'Ravello',d:'I giardini sopra il mare'},{n:'Vietri sul Mare',d:'Capitale della ceramica campana'}]},
+  {id:13,r:'Campania',z:'Sud',e:'🏛️',t:'Cilento Segreto',d:'Il Parco Nazionale del Cilento: mare, montagna, siti greci e cucina autentica lontano dai turisti.',km:240,h:'5h',df:'Facile',
+   tappe:[{n:'Salerno',d:'Partenza'},{n:'Paestum',d:'Tre templi greci intatti, UNESCO'},{n:'Agropoli',d:'Promontorio sul mare'},{n:'Castellabate',d:'Borgo nel Parco Nazionale'},{n:'Velia',d:'Antica Elea dei filosofi'},{n:'Palinuro',d:'Capo e grotte marine'}]},
+  {id:14,r:'Piemonte',z:'Nord',e:'🍷',t:'Langhe & Barolo',d:'Le colline UNESCO del Barolo e dell\'Asti: nebbia mattutina, tartufo, e i migliori vini d\'Italia.',km:160,h:'4h',df:'Facile',
+   tappe:[{n:'Alba',d:'Capitale delle Langhe e del tartufo'},{n:'La Morra',d:'Belvedere sulle Langhe a 360°'},{n:'Barolo',d:'Il paese del re dei vini'},{n:'Nizza Monferrato',d:'Barbera d\'Asti'},{n:'Asti',d:'Palio e Moscato'},{n:'Alba',d:'Rientro tra i vigneti'}]},
+  {id:15,r:'Piemonte',z:'Nord',e:'🏔️',t:'Agnello & Izoard',d:'Due valichi alpini leggendari al confine con la Francia. Quota oltre 2700m e paesaggi da montagna vera.',km:200,h:'5h',df:'Impegnativa',
+   tappe:[{n:'Cuneo',d:'Partenza'},{n:'Saluzzo',d:'Borgo marchionale rinascimentale'},{n:'Pontechianale',d:'Lago turchese in quota'},{n:'Colle dell\'Agnello',d:'2748m, tra i valichi più alti delle Alpi'},{n:'Colle dell\'Izoard',d:'2360m, le Casse Deserte, paesaggio lunare'},{n:'Cuneo',d:'Rientro dalla Valle Stura'}]},
+];
+
+let regDone=false;
+function renderRegioni(){
+  if(regDone) return; regDone=true;
+  const fEl=document.getElementById('regFilter');
+  ['Tutte','Nord','Centro','Sud'].forEach((z,i)=>{
+    const b=document.createElement('button');
+    b.className='rf-btn'+(i===0?' active':''); b.textContent=z;
+    b.onclick=()=>{document.querySelectorAll('.rf-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderCards(z==='Tutte'?RD:RD.filter(r=>r.z===z));};
+    fEl.appendChild(b);
+  });
+  renderCards(RD);
 }
 
-/* ── copia testo ── */
-function copyRoute() {
-  const route = window._currentRoute;
-  if (!route) return;
-  const txt = `🏍️ ${route.titolo}\n${route.sottotitolo}\n\n` +
-    `📏 ${route.km_totali} km · ⏱️ ${route.durata_ore}h · ${route.difficolta}\n\n` +
-    `📍 Tappe:\n` +
-    route.tappe.map((t, i) => `${i+1}. ${t.nome} — ${t.descrizione}`).join('\n') +
-    `\n\n✨ ${route.highlights}\n\n` +
-    `Generato con MotoRoute AI`;
-  navigator.clipboard.writeText(txt).then(() => {
-    showToast('Testo copiato!');
-  }).catch(() => {});
+function renderCards(data){
+  document.getElementById('regGrid').innerHTML=data.map(r=>`
+    <div class="reg-card" onclick="openModal(${r.id})">
+      <div class="rc-thumb">${r.e}</div>
+      <div class="rc-body">
+        <div class="rc-reg">${r.r}</div>
+        <div class="rc-title">${r.t}</div>
+        <div class="rc-desc">${r.d}</div>
+        <div class="rc-footer">
+          <span class="tag">${r.km} km</span>
+          <span class="tag">${r.h}</span>
+          <span class="tag ${r.df==='Facile'?'tg':r.df==='Impegnativa'?'ta':''}">${r.df}</span>
+        </div>
+      </div>
+    </div>`).join('');
 }
 
-/* ── condividi ── */
-function shareRoute() {
-  const route = window._currentRoute;
-  if (!route) return;
-  if (navigator.share) {
-    navigator.share({
-      title: `🏍️ ${route.titolo}`,
-      text: `${route.sottotitolo}\n${route.km_totali} km · ${route.durata_ore}h\n\nGenerato con MotoRoute AI`,
-      url: window.location.href
-    }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(window.location.href).then(() => showToast('Link copiato!')).catch(() => {});
-  }
+function openModal(id){
+  const r=RD.find(x=>x.id===id); if(!r) return;
+  const st=encodeURIComponent(`🏍️ ${r.t} — ${r.r}\n${r.d}\n${r.km}km · ${r.h}\n\nScopri altri su MotoRoute AI`);
+  const su=encodeURIComponent(window.location.href);
+  document.getElementById('mc').innerHTML=`
+    <div class="mb-thumb">${r.e}
+      <button class="mb-close" onclick="document.getElementById('mo').classList.remove('open')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="mb-body">
+      <div class="mb-reg">${r.r} · ${r.df}</div>
+      <div class="mb-title">${r.t}</div>
+      <div class="mb-desc">${r.d}</div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <div class="sc"><div class="sv">${r.km}</div><div class="sl">km</div></div>
+        <div class="sc"><div class="sv">${r.h}</div><div class="sl">durata</div></div>
+        <div class="sc"><div class="sv">${r.tappe.length}</div><div class="sl">tappe</div></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Tappe del percorso</div>
+      <div class="mb-stops">${r.tappe.map((t,i)=>`<div class="ms"><div class="ms-num">${i+1}</div><div class="ms-txt"><span class="ms-name">${t.n}</span> — ${t.d}</div></div>`).join('')}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-a fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${su}&quote=${st}','_blank')"><i class="ti ti-brand-facebook"></i> Facebook</button>
+        <button class="btn-a wa" onclick="window.open('https://wa.me/?text=${st}%20${su}','_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+        <button class="btn-a tw" onclick="window.open('https://twitter.com/intent/tweet?text=${st}&url=${su}','_blank')"><i class="ti ti-brand-x"></i> X</button>
+        <button class="btn-a" onclick="copyModal(${r.id})"><i class="ti ti-copy"></i> Copia</button>
+      </div>
+    </div>`;
+  document.getElementById('mo').classList.add('open');
 }
 
-/* ── toast ── */
-function showToast(msg) {
-  const t = document.createElement('div');
-  t.textContent = msg;
-  t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.2s`;
-  document.body.appendChild(t);
-  requestAnimationFrame(() => { t.style.opacity = '1'; });
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2200);
+function copyModal(id){
+  const r=RD.find(x=>x.id===id); if(!r) return;
+  navigator.clipboard.writeText(`🏍️ ${r.t} — ${r.r}\n${r.d}\n\n📍 Tappe:\n`+r.tappe.map((t,i)=>`${i+1}. ${t.n} — ${t.d}`).join('\n')+`\n\n📏 ${r.km}km · ⏱️ ${r.h}\n\nMotoRoute AI`).then(()=>toast('Testo copiato!')).catch(()=>{});
 }
 
-/* ── escape XML ── */
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function closeMo(e){if(e.target===document.getElementById('mo')) document.getElementById('mo').classList.remove('open');}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2200);}
+function x(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 </script>
 </body>
 </html>
