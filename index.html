@@ -6,384 +6,434 @@
 <title>MotoRoute AI — Il tuo giro perfetto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#1bbd87;--green-d:#0f7a57;--green-l:#e6f9f2;
-  --asphalt:#1c1e24;--asphalt2:#252830;--asphalt3:#2e3240;
-  --smoke:#f5f5f3;--smoke2:#eceae6;--smoke3:#d8d6d0;
-  --txt:#1c1e24;--txt2:#5a5c66;--txt3:#9a9ca8;
-  --amber:#e8940a;--amber-l:#fef3d7;--amber-d:#7a4d00;
-  --red:#c0392b;--red-l:#fdecea;
-  --blue:#2471c8;--blue-l:#e8f1fd;--blue-d:#0d4a8a;
-  --border:rgba(0,0,0,.09);--border2:rgba(0,0,0,.16);
-  --r:6px;--r-lg:12px;
-  --ff-head:'Barlow Condensed',sans-serif;
-  --ff-body:'Inter',system-ui,sans-serif;
-}
-@media(prefers-color-scheme:dark){:root{
-  --smoke:#1c1e24;--smoke2:#252830;--smoke3:#2e3240;
+  --or:#E8820A;--or-d:#C06A00;--or-l:rgba(232,130,10,.15);--or-glow:rgba(232,130,10,.25);
+  --bg:#0f1012;--bg2:#17191e;--bg3:#1e2026;--bg4:#252830;
   --txt:#f0efe8;--txt2:#9a9ca8;--txt3:#5a5c66;
-  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.15);
-  --green-l:#07301e;--blue-l:#071d38;--amber-l:#2a1c00;--red-l:#2a0a08;
-}}
-
-html,body{height:100%;font-family:var(--ff-body);font-size:15px;color:var(--txt);background:var(--smoke);line-height:1.5}
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --green:#1bbd87;--green-l:rgba(27,189,135,.12);--green-d:#0f7a57;
+  --blue:#2471c8;--blue-l:rgba(36,113,200,.12);
+  --amber:#e8940a;--amber-l:rgba(232,148,10,.12);
+  --red:#c0392b;--red-l:rgba(192,57,43,.12);
+  --r:8px;--r-lg:14px;--r-xl:20px;
+  --ff-h:'Barlow Condensed',sans-serif;
+  --ff:'Inter',system-ui,sans-serif;
+}
+html,body{height:100%;font-family:var(--ff);font-size:15px;color:var(--txt);background:var(--bg);line-height:1.5}
 .app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
 /* ── HEADER ── */
 header{
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 1.25rem;height:56px;
-  background:var(--asphalt);
+  padding:0 1.5rem;height:54px;
+  background:var(--bg2);border-bottom:.5px solid var(--border);
   flex-shrink:0;gap:16px;
-  box-shadow:0 2px 12px rgba(0,0,0,.3);
 }
-
-/* LOGO */
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
-.logo-icon{
-  width:36px;height:36px;border-radius:8px;
-  background:linear-gradient(135deg,var(--green) 0%,#0fa870 100%);
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+/* SVG logo: sagoma stilizzata del saluto motociclistico (braccio alzato dal manubrio) */
+.logo-badge{
+  width:38px;height:38px;border-radius:10px;flex-shrink:0;
+  background:var(--or);
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 0 1px rgba(255,255,255,.15),0 2px 8px rgba(27,189,135,.4);
+  box-shadow:0 0 0 1px rgba(255,255,255,.1),0 4px 14px var(--or-glow);
   position:relative;overflow:hidden;
 }
-.logo-icon::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.2) 0%,transparent 60%);
-}
-.logo-icon i{font-size:20px;color:#fff;position:relative;z-index:1}
-.logo-text{display:flex;flex-direction:column;line-height:1}
-.logo-name{font-family:var(--ff-head);font-size:20px;font-weight:700;letter-spacing:.5px;color:#fff}
-.logo-name span{color:var(--green)}
-.logo-tag{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
-
+.logo-badge::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%)}
+.logo-badge svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;position:relative;z-index:1}
+.logo-text{line-height:1}
+.logo-name{font-family:var(--ff-h);font-size:21px;font-weight:800;letter-spacing:.5px;color:var(--txt)}
+.logo-name span{color:var(--or)}
+.logo-sub{font-size:10px;color:var(--txt3);letter-spacing:.7px;text-transform:uppercase;margin-top:1px}
 nav{display:flex;gap:2px}
-.nav-btn{padding:7px 14px;border-radius:var(--r);border:none;background:transparent;color:rgba(255,255,255,.55);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;font-family:var(--ff-body)}
-.nav-btn:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.9)}
-.nav-btn.active{background:var(--green);color:#fff}
-.nav-btn.active i{opacity:1}
-
-.btn-donate{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-size:12px;font-weight:600;text-decoration:none;border:.5px solid rgba(255,255,255,.15);transition:all .15s;white-space:nowrap;font-family:var(--ff-body)}
-.btn-donate:hover{background:rgba(255,255,255,.18);color:#fff}
-.btn-donate i{font-size:15px;color:#e8940a}
+.nb{padding:7px 14px;border-radius:var(--r);border:none;background:transparent;color:var(--txt2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;font-family:var(--ff)}
+.nb:hover{background:var(--bg3);color:var(--txt)}
+.nb.active{background:var(--or);color:#fff}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.btn-donate-hdr{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r);background:var(--or-l);border:.5px solid rgba(232,130,10,.3);color:var(--or);font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;transition:all .15s;font-family:var(--ff);white-space:nowrap}
+.btn-donate-hdr:hover{background:var(--or);color:#fff}
 
 /* ── PAGES ── */
 .page{display:none;flex:1;overflow:hidden}
 .page.active{display:flex}
 
-/* ── GENERATOR LAYOUT ── */
-.gen-layout{display:flex;flex:1;overflow:hidden}
+/* ══ GENERATOR — 2-column layout ══ */
+.gen-layout{display:flex;flex:1;overflow:hidden;gap:0}
 
-/* ── SIDEBAR ── */
-.sidebar{width:310px;flex-shrink:0;display:flex;flex-direction:column;border-right:.5px solid var(--border);background:var(--smoke);overflow-y:auto}
-.sidebar-inner{padding:1rem 1rem 1.5rem;display:flex;flex-direction:column;gap:16px}
+/* LEFT: form */
+.sidebar{width:340px;flex-shrink:0;background:var(--bg2);border-right:.5px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.sidebar-inner{padding:1.25rem;display:flex;flex-direction:column;gap:18px}
 
-.fl{display:block;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+/* Quick action */
+.quick-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn-quick{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--or);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--ff-h);letter-spacing:.5px;white-space:nowrap;transition:opacity .15s}
+.btn-quick:hover{opacity:.88}
+.btn-quick i{font-size:17px}
+.quick-or{font-size:12px;color:var(--txt3)}
+.btn-customize{background:none;border:none;color:var(--txt2);font-size:13px;cursor:pointer;font-family:var(--ff);text-decoration:underline;text-underline-offset:3px;padding:0}
+.btn-customize:hover{color:var(--txt)}
 
-input[type=text],input[type=date],select,textarea{
-  width:100%;padding:9px 11px;
-  border:.5px solid var(--border2);border-radius:var(--r);
-  background:var(--smoke);color:var(--txt);font-size:14px;
-  outline:none;transition:border-color .15s,box-shadow .15s;
-  font-family:var(--ff-body);
-}
-input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(27,189,135,.12)}
-textarea{height:64px;resize:none;line-height:1.45}
+.fl{display:block;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.9px;margin-bottom:6px}
 
-/* LOCATION ROW */
+/* Campo testo grande stile Lovable */
+.dream-input{width:100%;padding:12px 14px;background:var(--bg3);border:.5px solid var(--border2);border-radius:var(--r);color:var(--txt);font-size:14px;font-family:var(--ff);outline:none;resize:none;height:82px;line-height:1.5;transition:border-color .15s}
+.dream-input:focus{border-color:var(--or);box-shadow:0 0 0 3px var(--or-l)}
+
+input[type=text],input[type=date],select{width:100%;padding:9px 12px;background:var(--bg3);border:.5px solid var(--border2);border-radius:var(--r);color:var(--txt);font-size:14px;font-family:var(--ff);outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--or);box-shadow:0 0 0 3px var(--or-l)}
+select option{background:var(--bg3)}
+
+/* LOC row */
 .loc-row{display:flex;gap:6px}
 .loc-row input{flex:1}
-.btn-loc{padding:9px 11px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--smoke);color:var(--txt3);cursor:pointer;display:flex;align-items:center;gap:4px;font-size:13px;transition:all .15s;white-space:nowrap;border:none;border:.5px solid var(--border2)}
-.btn-loc:hover{border-color:var(--green);color:var(--green)}
-.btn-loc i{font-size:16px}
+.btn-loc{padding:9px 12px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg3);color:var(--txt3);cursor:pointer;display:flex;align-items:center;gap:4px;font-size:13px;transition:all .15s;font-family:var(--ff);white-space:nowrap}
+.btn-loc:hover{border-color:var(--or);color:var(--or)}
 
-/* PRIORITY SELECTOR */
-.priority-box{background:var(--smoke2);border-radius:var(--r);padding:12px;border:.5px solid var(--border)}
-.priority-label{font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.priority-label i{color:var(--amber);font-size:14px}
-.priority-opts{display:flex;gap:6px}
-.pr-opt{flex:1;padding:8px 6px;border-radius:var(--r);border:.5px solid var(--border2);background:var(--smoke);cursor:pointer;text-align:center;transition:all .15s;position:relative}
-.pr-opt:hover{border-color:var(--green)}
-.pr-opt.active{border-color:var(--green);background:var(--green-l)}
-.pr-opt .pr-name{font-size:12px;font-weight:600;color:var(--txt);margin-bottom:2px}
-.pr-opt .pr-hint{font-size:10px;color:var(--txt3);line-height:1.3}
-.pr-opt.active .pr-name{color:var(--green-d)}
-.pr-opt.active .pr-hint{color:var(--green-d);opacity:.7}
-.pr-check{position:absolute;top:5px;right:6px;font-size:12px;color:var(--green);display:none}
-.pr-opt.active .pr-check{display:block}
+/* ANELLO */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--bg3);border-radius:var(--r);border:.5px solid var(--border);cursor:pointer;transition:border-color .15s}
+.toggle-row:hover{border-color:var(--border2)}
+.toggle-row.on{border-color:rgba(232,130,10,.3);background:var(--or-l)}
+.tr-left{display:flex;align-items:center;gap:10px}
+.tr-left i{font-size:18px;color:var(--or)}
+.tr-label strong{font-size:13px;font-weight:600;display:block}
+.tr-label span{font-size:11px;color:var(--txt3)}
+.pill{width:36px;height:20px;border-radius:10px;background:var(--bg4);position:relative;transition:background .2s;flex-shrink:0}
+.pill::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--txt3);transition:all .2s}
+.toggle-row.on .pill{background:var(--or)}
+.toggle-row.on .pill::after{transform:translateX(16px);background:#fff}
+
+/* PRIORITY */
+.pri-box{background:var(--bg3);border-radius:var(--r);padding:12px;border:.5px solid var(--border)}
+.pri-title{font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.pri-title i{color:var(--or)}
+.pri-opts{display:flex;gap:8px}
+.po{flex:1;padding:9px 8px;border-radius:var(--r);border:.5px solid var(--border2);background:var(--bg4);cursor:pointer;text-align:center;transition:all .15s}
+.po:hover{border-color:var(--or)}
+.po.active{border-color:var(--or);background:var(--or-l)}
+.po-name{font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:2px}
+.po-hint{font-size:10px;color:var(--txt3);line-height:1.35}
+.po.active .po-name{color:var(--or)}
 
 /* SLIDERS */
-.slider-group{display:flex;flex-direction:column;gap:10px}
-.slider-row{display:flex;flex-direction:column;gap:6px}
-.slider-top{display:flex;align-items:center;justify-content:space-between}
-.slider-name{font-size:12px;font-weight:500;color:var(--txt2);display:flex;align-items:center;gap:5px}
-.slider-name i{font-size:14px;color:var(--green)}
-.slider-val{font-size:13px;font-weight:600;color:var(--txt);padding:2px 8px;background:var(--smoke2);border-radius:4px}
-.slider-val.dimmed{color:var(--txt3);text-decoration:line-through}
-input[type=range]{width:100%;accent-color:var(--green);height:4px;cursor:pointer;background:var(--smoke3);border-radius:2px;border:none;padding:0}
-input[type=range]:disabled{opacity:.35;cursor:default}
-.slider-note{font-size:11px;color:var(--txt3);font-style:italic}
+.sl-row{display:flex;flex-direction:column;gap:6px}
+.sl-top{display:flex;align-items:center;justify-content:space-between}
+.sl-name{font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:5px}
+.sl-name i{font-size:14px;color:var(--or)}
+.sl-val{font-size:14px;font-weight:700;color:var(--or);font-family:var(--ff-h);letter-spacing:.5px}
+.sl-val.dim{color:var(--txt3);text-decoration:line-through}
+input[type=range]{width:100%;accent-color:var(--or);height:4px;cursor:pointer;background:var(--bg4);border-radius:2px;border:none;padding:0;margin:4px 0}
+input[type=range]:disabled{opacity:.3;cursor:default}
+.sl-note{font-size:10px;color:var(--txt3);font-style:italic}
 
-/* STYLE GRID */
-.cb-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.cb-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt2);cursor:pointer;padding:6px 8px;border-radius:var(--r);border:.5px solid transparent;transition:all .15s;user-select:none}
-.cb-item:hover{background:var(--smoke2);border-color:var(--border)}
-.cb-item input{width:15px;height:15px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
-.cb-item.checked{background:var(--green-l);border-color:rgba(27,189,135,.3);color:var(--green-d)}
+/* TOGGLES STERRATO */
+.toggle-small{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--bg3);border-radius:var(--r);border:.5px solid var(--border);cursor:pointer;transition:border-color .15s}
+.toggle-small.on{border-color:rgba(232,130,10,.3)}
+.ts-left{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt2)}
+.ts-left i{font-size:16px;color:var(--txt3)}
+.toggle-small.on .ts-left i{color:var(--or)}
+.toggle-small.on .ts-left{color:var(--txt)}
+.pill-sm{width:30px;height:17px;border-radius:9px;background:var(--bg4);position:relative;flex-shrink:0;transition:background .2s}
+.pill-sm::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--txt3);transition:all .2s}
+.toggle-small.on .pill-sm{background:var(--or)}
+.toggle-small.on .pill-sm::after{transform:translateX(13px);background:#fff}
 
-/* ANELLO TOGGLE */
-.anello-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--smoke2);border-radius:var(--r);border:.5px solid var(--border);cursor:pointer;transition:all .15s}
-.anello-toggle:hover{border-color:var(--green)}
-.anello-toggle.on{background:var(--green-l);border-color:rgba(27,189,135,.3)}
-.anello-left{display:flex;align-items:center;gap:10px}
-.anello-left i{font-size:20px;color:var(--green)}
-.anello-text strong{font-size:13px;font-weight:600;color:var(--txt);display:block}
-.anello-text span{font-size:11px;color:var(--txt3)}
-.toggle-pill{width:36px;height:20px;border-radius:10px;background:var(--smoke3);position:relative;transition:background .2s;flex-shrink:0}
-.toggle-pill::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.anello-toggle.on .toggle-pill{background:var(--green)}
-.anello-toggle.on .toggle-pill::after{transform:translateX(16px)}
-
-/* GENERATE BUTTON */
-.btn-gen{width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .18s;font-family:var(--ff-head);letter-spacing:.5px}
+/* GENERATE */
+.btn-gen{width:100%;padding:13px;background:var(--or);color:#fff;border:none;border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--ff-h);letter-spacing:.8px;transition:opacity .15s;margin-top:4px}
 .btn-gen:hover{opacity:.88}
-.btn-gen:disabled{opacity:.45;cursor:not-allowed}
+.btn-gen:disabled{opacity:.4;cursor:not-allowed}
 
-/* ── MAP + RESULT ── */
-.content{flex:1;display:flex;flex-direction:column;overflow:hidden}
-#map{height:240px;flex-shrink:0;background:var(--smoke2)}
-.result-panel{height:calc(100% - 240px);flex-shrink:0;border-top:.5px solid var(--border);overflow-y:auto;background:var(--smoke)}
-.result-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--txt3);gap:10px;font-size:14px}
-.result-empty i{font-size:40px;opacity:.3}
-.ri{padding:1rem 1.25rem}
+/* RIGHT: result */
+.result-col{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
 
-.route-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
-.route-title{font-family:var(--ff-head);font-size:22px;font-weight:700;letter-spacing:.3px;line-height:1.1}
-.route-sub{font-size:13px;color:var(--txt2);margin-top:3px}
+/* Empty state */
+.result-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--txt3);gap:14px;padding:2rem}
+.re-icon{width:72px;height:72px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center}
+.re-icon i{font-size:32px;color:var(--txt3)}
+.re-title{font-family:var(--ff-h);font-size:20px;font-weight:600;color:var(--txt2)}
+.re-sub{font-size:13px;color:var(--txt3);text-align:center;max-width:280px;line-height:1.6}
+
+/* Result content */
+.result-inner{flex:1;overflow-y:auto;padding:1.25rem}
+
+/* map inside result */
+#map{height:220px;flex-shrink:0;border-bottom:.5px solid var(--border)}
+
+/* loading */
+.loading-overlay{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--txt2)}
+.sp{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--or);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .75s linear infinite}
+
+/* Route header */
+.rh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.r-title{font-family:var(--ff-h);font-size:26px;font-weight:800;letter-spacing:.3px;line-height:1.1}
+.r-sub{font-size:13px;color:var(--txt2);margin-top:4px}
 .badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;white-space:nowrap}
-.b-g{background:var(--green-l);color:var(--green-d)}
-.b-a{background:var(--amber-l);color:var(--amber-d)}
+.b-g{background:rgba(27,189,135,.15);color:#1bbd87}
+.b-a{background:var(--amber-l);color:var(--amber)}
 .b-r{background:var(--red-l);color:var(--red)}
 
-.stats-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.sc{background:var(--smoke2);border-radius:var(--r);padding:8px 14px;text-align:center;min-width:68px;border:.5px solid var(--border)}
-.sv{font-family:var(--ff-head);font-size:18px;font-weight:700;letter-spacing:.5px}
-.sl{font-size:10px;color:var(--txt3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.stats-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.sc{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:10px 14px;text-align:center;min-width:70px}
+.sv{font-family:var(--ff-h);font-size:20px;font-weight:700;color:var(--or)}
+.sl2{font-size:10px;color:var(--txt3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
 
-.highlights{font-size:13px;color:var(--txt2);margin-bottom:14px;padding:10px 14px;background:var(--smoke2);border-radius:var(--r);border-left:3px solid var(--green);line-height:1.6}
+.meteo-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);margin-bottom:14px;font-size:13px;flex-wrap:wrap}
+.meteo-bar i{font-size:20px;color:var(--blue)}
+.mw{color:var(--amber)}.ma{color:var(--red)}
 
-.stop-item{display:flex;gap:12px;padding:10px 0;border-bottom:.5px solid var(--border);align-items:flex-start}
+.hl{padding:10px 14px;background:var(--bg2);border-left:3px solid var(--or);border-radius:var(--r);font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:16px}
+
+/* STOPS */
+.stop-item{display:flex;gap:12px;padding:12px 0;border-bottom:.5px solid var(--border);align-items:flex-start}
 .stop-item:last-of-type{border-bottom:none}
-.sn{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-family:var(--ff-head)}
+.snum{width:28px;height:28px;border-radius:50%;background:var(--or);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--ff-h)}
 .sc2{flex:1}
-.sname{font-size:14px;font-weight:600}
+.sname{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .sdesc{font-size:12px;color:var(--txt2);margin-top:4px;line-height:1.5}
-.stags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.tag{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--smoke2);color:var(--txt2);border:.5px solid var(--border)}
-.tg{background:var(--green-l);color:var(--green-d)}
-.tb{background:var(--blue-l);color:var(--blue-d)}
-.ta{background:var(--amber-l);color:var(--amber-d)}
-.mc{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--blue-l);color:var(--blue-d)}
-.mc i{font-size:13px}
-.mc.warn{background:var(--amber-l);color:var(--amber-d)}
+.stags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg3);color:var(--txt3);border:.5px solid var(--border)}
+.tg{background:rgba(27,189,135,.1);color:#1bbd87;border-color:rgba(27,189,135,.2)}
+.to{background:var(--or-l);color:var(--or);border-color:rgba(232,130,10,.2)}
+.tb{background:var(--blue-l);color:#6aaef0;border-color:rgba(36,113,200,.2)}
+.mc{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--blue-l);color:#6aaef0}
+.mc.warn{background:var(--amber-l);color:var(--amber)}
 .mc.alert{background:var(--red-l);color:var(--red)}
 
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:.5px solid var(--border)}
-.btn-a{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border-radius:var(--r);cursor:pointer;border:.5px solid var(--border2);background:transparent;color:var(--txt);transition:background .15s;font-family:var(--ff-body)}
-.btn-a:hover{background:var(--smoke2)}
-.btn-a.p{background:var(--green);color:#fff;border-color:var(--green)}
-.btn-a.p:hover{opacity:.88;background:var(--green)}
+/* ACTIONS */
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:.5px solid var(--border)}
+.btn-a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;font-weight:500;border-radius:var(--r);cursor:pointer;border:.5px solid var(--border2);background:transparent;color:var(--txt2);transition:all .15s;font-family:var(--ff)}
+.btn-a:hover{background:var(--bg2);color:var(--txt);border-color:var(--border2)}
+.btn-a.p{background:var(--or);color:#fff;border-color:var(--or)}
+.btn-a.p:hover{opacity:.88}
 .btn-a.fb{background:#1877F2;color:#fff;border-color:#1877F2}
 .btn-a.wa{background:#25D366;color:#fff;border-color:#25D366}
-.btn-a.tw{background:#000;color:#fff;border-color:#000}
+.btn-a.tw{background:#000;color:#fff;border-color:#333}
 
-.spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:spin .75s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-overlay{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;color:var(--txt2)}
-.sp2{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .75s linear infinite}
-.err{margin:1rem;padding:14px;border-radius:var(--r);background:var(--red-l);color:var(--red);font-size:13px;line-height:1.6}
+.err{margin:1.25rem;padding:14px;border-radius:var(--r);background:var(--red-l);color:var(--red);font-size:13px;line-height:1.6;border:.5px solid rgba(192,57,43,.2)}
 
-/* ── REGIONI ── */
-.reg-page{flex:1;overflow-y:auto;background:var(--smoke)}
-.reg-inner{max-width:1100px;margin:0 auto;padding:1.5rem}
-.reg-page-title{font-family:var(--ff-head);font-size:28px;font-weight:700;margin-bottom:4px;letter-spacing:.3px}
-.reg-page-sub{font-size:14px;color:var(--txt2);margin-bottom:1.5rem}
-.reg-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
-.rf-btn{padding:6px 16px;border-radius:20px;border:.5px solid var(--border2);background:transparent;color:var(--txt2);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--ff-body)}
-.rf-btn:hover,.rf-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
-.reg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.reg-card{border-radius:var(--r-lg);border:.5px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;background:var(--smoke)}
-.reg-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
-.rc-thumb{width:100%;height:160px;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative}
-.rc-thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.15))}
-.rc-body{padding:14px}
-.rc-reg{font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
-.rc-title{font-family:var(--ff-head);font-size:17px;font-weight:700;margin-bottom:6px;line-height:1.2;letter-spacing:.2px}
-.rc-desc{font-size:13px;color:var(--txt2);line-height:1.5;margin-bottom:10px}
+/* ══ REGIONI PAGE ══ */
+.reg-page{flex:1;overflow-y:auto;background:var(--bg)}
+.reg-inner{max-width:1200px;margin:0 auto;padding:2rem 1.5rem}
+.rp-head{margin-bottom:2rem;text-align:center}
+.rp-title{font-family:var(--ff-h);font-size:36px;font-weight:800;letter-spacing:.5px;color:var(--txt)}
+.rp-sub{font-size:15px;color:var(--txt2);margin-top:6px}
+.reg-filter{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:2rem}
+.rf{padding:7px 18px;border-radius:20px;border:.5px solid var(--border2);background:transparent;color:var(--txt2);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--ff)}
+.rf:hover,.rf.active{background:var(--or);color:#fff;border-color:var(--or)}
+.reg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.rc{border-radius:var(--r-lg);border:.5px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;background:var(--bg2)}
+.rc:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.4);border-color:rgba(232,130,10,.3)}
+.rc-img{width:100%;height:180px;object-fit:cover;display:block;background:var(--bg3)}
+.rc-body{padding:16px}
+.rc-reg{font-size:10px;font-weight:600;color:var(--or);text-transform:uppercase;letter-spacing:.9px;margin-bottom:5px}
+.rc-title{font-family:var(--ff-h);font-size:19px;font-weight:700;margin-bottom:7px;letter-spacing:.2px;color:var(--txt)}
+.rc-desc{font-size:13px;color:var(--txt2);line-height:1.5;margin-bottom:12px}
 .rc-footer{display:flex;gap:6px;flex-wrap:wrap}
 
 /* MODAL */
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px)}
 .mo.open{display:flex}
-.mb{background:var(--smoke);border-radius:var(--r-lg);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25)}
-.mb-thumb{width:100%;height:180px;display:flex;align-items:center;justify-content:center;font-size:72px;border-radius:var(--r-lg) var(--r-lg) 0 0;position:relative}
-.mb-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.mb-body{padding:1.5rem}
-.mb-reg{font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
-.mb-title{font-family:var(--ff-head);font-size:24px;font-weight:700;margin-bottom:8px;letter-spacing:.3px}
-.mb-desc{font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:16px}
-.mb-stops{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.mb{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-xl);max-width:580px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.6)}
+.mb-img{width:100%;height:200px;object-fit:cover;border-radius:var(--r-xl) var(--r-xl) 0 0;display:block;background:var(--bg3)}
+.mb-body{padding:1.75rem}
+.mb-reg{font-size:10px;font-weight:600;color:var(--or);text-transform:uppercase;letter-spacing:.9px;margin-bottom:8px}
+.mb-title{font-family:var(--ff-h);font-size:26px;font-weight:800;margin-bottom:8px;letter-spacing:.3px}
+.mb-desc{font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:18px}
+.mb-stats{display:flex;gap:8px;margin-bottom:18px}
+.mb-stops{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
 .ms{display:flex;gap:10px;align-items:flex-start}
-.ms-num{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:var(--ff-head)}
-.ms-txt{font-size:13px;color:var(--txt2);line-height:1.5}
-.ms-name{font-weight:600;color:var(--txt)}
+.msn{width:22px;height:22px;border-radius:50%;background:var(--or);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:var(--ff-h)}
+.mst{font-size:13px;color:var(--txt2);line-height:1.5}
+.msn2{font-weight:600;color:var(--txt)}
+.mb-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mb-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:.5px solid var(--border)}
 
-.divider{border:none;border-top:.5px solid var(--border);margin:4px 0}
+/* DONATE POPUP */
+.dp{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px)}
+.dp.open{display:flex}
+.dp-box{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-xl);max-width:400px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,.6);overflow:hidden;position:relative}
+.dp-top{background:linear-gradient(135deg,#1a0f00,#2a1800);padding:2rem 1.5rem 1.5rem;text-align:center;border-bottom:.5px solid var(--border)}
+.dp-emoji{font-size:52px;margin-bottom:10px;display:block}
+.dp-title{font-family:var(--ff-h);font-size:26px;font-weight:800;color:var(--txt);letter-spacing:.5px}
+.dp-sub{font-size:13px;color:var(--txt2);margin-top:6px;line-height:1.6}
+.dp-body{padding:1.5rem}
+.dp-bullets{display:flex;flex-direction:column;gap:10px;margin-bottom:1.25rem}
+.dp-b{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt2)}
+.dp-bi{width:30px;height:30px;border-radius:50%;background:var(--or-l);border:.5px solid rgba(232,130,10,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dp-bi i{font-size:15px;color:var(--or)}
+.btn-paypal{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#003087;color:#fff;border-radius:var(--r);font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px;font-family:var(--ff-h);letter-spacing:.8px;transition:opacity .15s}
+.btn-paypal:hover{opacity:.88}
+.btn-maybe{width:100%;padding:10px;background:transparent;border:.5px solid var(--border2);border-radius:var(--r);font-size:13px;color:var(--txt3);cursor:pointer;font-family:var(--ff);transition:all .15s}
+.btn-maybe:hover{border-color:var(--border2);color:var(--txt2)}
+.dp-close{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.1);border:none;color:var(--txt2);width:28px;height:28px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--asphalt);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .2s}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--txt);padding:9px 22px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .2s;border:.5px solid var(--border2)}
 
-@media(max-width:700px){
+@media(max-width:760px){
   .sidebar{width:100%;border-right:none;border-bottom:.5px solid var(--border)}
   .gen-layout{flex-direction:column}
-  #map{min-height:220px}
-  .result-panel{height:auto;max-height:360px}
-  .logo-tag{display:none}
+  #map{height:180px}
+  .rp-title{font-size:26px}
   .reg-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:480px){
   .reg-grid{grid-template-columns:1fr}
-  .nav-btn span{display:none}
-  .btn-donate span{display:none}
+  .nb span{display:none}
+  .logo-sub{display:none}
 }
 </style>
 </head>
 <body>
 <div class="app">
+
+<!-- HEADER -->
 <header>
   <a class="logo" href="#">
-    <div class="logo-icon"><i class="ti ti-motorbike"></i></div>
+    <div class="logo-badge">
+      <!-- SVG: sagoma motociclista con braccio alzato (saluto motociclistico) -->
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <!-- ruota posteriore -->
+        <circle cx="6" cy="18" r="3.2" stroke-width="1.8"/>
+        <!-- ruota anteriore -->
+        <circle cx="18" cy="18" r="3.2" stroke-width="1.8"/>
+        <!-- telaio moto -->
+        <path d="M6 18 L10 11 L15 11 L18 18"/>
+        <path d="M10 11 L14 14"/>
+        <!-- manubrio -->
+        <path d="M15 11 L17 9 M17 9 L19 10 M17 9 L16 7"/>
+        <!-- busto motociclista -->
+        <path d="M11 11 L12 8"/>
+        <!-- testa -->
+        <circle cx="12" cy="7" r="1.3" fill="white" stroke="none"/>
+        <!-- braccio alzato saluto -->
+        <path d="M12 8 L10 6 L9 4" stroke-width="1.5"/>
+      </svg>
+    </div>
     <div class="logo-text">
       <div class="logo-name">Moto<span>Route</span></div>
-      <div class="logo-tag">AI · Itinerari su misura</div>
+      <div class="logo-sub">AI · Itinerari su misura</div>
     </div>
   </a>
   <nav>
-    <button class="nav-btn active" id="tab-gen" onclick="showPage('gen')"><i class="ti ti-sparkles"></i> <span>Genera</span></button>
-    <button class="nav-btn" id="tab-reg" onclick="showPage('reg')"><i class="ti ti-map-2"></i> <span>Regioni</span></button>
+    <button class="nb active" id="tab-gen" onclick="showPage('gen')"><i class="ti ti-sparkles"></i> <span>Genera</span></button>
+    <button class="nb" id="tab-reg" onclick="showPage('reg')"><i class="ti ti-map-2"></i> <span>Regioni</span></button>
   </nav>
-  <a href="https://www.paypal.com/donate/?business=f.brandonisio88%40gmail.com&currency_code=EUR" target="_blank" class="btn-donate">
-    <i class="ti ti-heart-filled"></i> <span>Donazione</span>
-  </a>
+  <div class="hdr-right">
+    <button class="btn-donate-hdr" onclick="openDonate()"><i class="ti ti-heart-filled"></i> Dona</button>
+  </div>
 </header>
 
-<!-- GENERA -->
+<!-- ══ GENERA ══ -->
 <div class="page active" id="page-gen">
 <div class="gen-layout">
+
+  <!-- FORM -->
   <div class="sidebar"><div class="sidebar-inner">
 
-    <!-- PARTENZA -->
-    <div>
-      <label class="fl">Partenza</label>
-      <div class="loc-row">
-        <input type="text" id="start" placeholder="Città, indirizzo…" value="Bologna"/>
-        <button class="btn-loc" id="btnLoc" onclick="useMyLocation()" title="Usa la mia posizione">
-          <i class="ti ti-current-location"></i>
-        </button>
-      </div>
+    <!-- Quick -->
+    <div class="quick-bar">
+      <button class="btn-quick" onclick="quickGenerate()"><i class="ti ti-bolt"></i> Giro vicino a me · 3h</button>
+      <span class="quick-or">oppure</span>
+      <button class="btn-customize" onclick="document.getElementById('formSections').scrollIntoView({behavior:'smooth'})">personalizza ↓</button>
     </div>
 
-    <!-- MOTO -->
+    <div id="formSections" style="display:flex;flex-direction:column;gap:18px">
+
+    <!-- Sogno -->
     <div>
-      <label class="fl">Tipo di moto</label>
+      <label class="fl"><i class="ti ti-sparkles" style="color:var(--or);font-size:12px"></i> Che giro vuoi vivere oggi?</label>
+      <textarea class="dream-input" id="dream" placeholder="Es. tornanti tra le Dolomiti, mare al tramonto, una trattoria di montagna a metà strada…"></textarea>
+    </div>
+
+    <!-- Moto -->
+    <div>
+      <label class="fl"><i class="ti ti-motorbike" style="color:var(--or);font-size:12px"></i> La tua moto</label>
       <select id="moto">
+        <option value="qualsiasi">Non specificato</option>
         <option value="sportiva">Sportiva / Naked</option>
-        <option value="adventure" selected>Adventure / Enduro</option>
+        <option value="adventure">Adventure / Enduro</option>
         <option value="touring">Touring / Custom</option>
-        <option value="qualsiasi">Qualsiasi</option>
       </select>
+      <div style="font-size:11px;color:var(--txt3);margin-top:5px">Adattiamo strade e sterrato al tipo di moto.</div>
     </div>
 
-    <!-- PRIORITY + SLIDERS -->
+    <!-- Partenza -->
     <div>
-      <label class="fl" style="margin-bottom:10px">Cosa conta di più?</label>
-      <div class="priority-box">
-        <div class="priority-label"><i class="ti ti-adjustments"></i> Il parametro selezionato guida la pianificazione</div>
-        <div class="priority-opts">
-          <div class="pr-opt active" id="pr-time" onclick="setPriority('time')">
-            <div class="pr-name">⏱ Tempo</div>
-            <div class="pr-hint">Rispetto la durata, i km si adattano</div>
-            <i class="ti ti-check pr-check"></i>
-          </div>
-          <div class="pr-opt" id="pr-km" onclick="setPriority('km')">
-            <div class="pr-name">📏 Distanza</div>
-            <div class="pr-hint">Rispetto i km, la durata si adatta</div>
-            <i class="ti ti-check pr-check"></i>
-          </div>
-        </div>
-      </div>
-      <div class="slider-group" style="margin-top:12px">
-        <div class="slider-row">
-          <div class="slider-top">
-            <span class="slider-name"><i class="ti ti-clock"></i> Durata</span>
-            <span class="slider-val" id="durataVal">3 ore</span>
-          </div>
-          <input type="range" id="durataRange" min="1" max="10" step=".5" value="3"
-            oninput="document.getElementById('durataVal').textContent=this.value+' ore'"/>
-          <div class="slider-note" id="durataNote">Priorità attiva — i km si adatteranno</div>
-        </div>
-        <div class="slider-row">
-          <div class="slider-top">
-            <span class="slider-name"><i class="ti ti-road"></i> Distanza</span>
-            <span class="slider-val" id="kmVal">200 km</span>
-          </div>
-          <input type="range" id="kmRange" min="50" max="600" step="10" value="200"
-            oninput="document.getElementById('kmVal').textContent=this.value+' km'"/>
-          <div class="slider-note" id="kmNote" style="display:none">Priorità attiva — la durata si adatterà</div>
-        </div>
+      <label class="fl"><i class="ti ti-map-pin" style="color:var(--or);font-size:12px"></i> Punto di partenza</label>
+      <div class="loc-row">
+        <input type="text" id="start" placeholder="Es. Bergamo, Piazza Vittoria"/>
+        <button class="btn-loc" id="btnLoc" onclick="useMyLocation()"><i class="ti ti-current-location"></i></button>
       </div>
     </div>
 
-    <!-- STILE -->
+    <!-- Anello -->
+    <div class="toggle-row on" id="anelloRow" onclick="toggleAnello()">
+      <div class="tr-left"><i class="ti ti-refresh"></i>
+        <div class="tr-label"><strong>Giro ad anello</strong><span id="anelloSub">Ritorno al punto di partenza</span></div>
+      </div>
+      <div class="pill" id="anelloPill"></div>
+    </div>
+
+    <!-- Zona -->
     <div>
-      <label class="fl">Stile del percorso</label>
-      <div class="cb-grid" id="cbGrid">
-        <label class="cb-item"><input type="checkbox" id="cb_passi" checked onchange="updateCb(this)"/> Passi alpini</label>
-        <label class="cb-item"><input type="checkbox" id="cb_panoramico" checked onchange="updateCb(this)"/> Panoramico</label>
-        <label class="cb-item"><input type="checkbox" id="cb_sterrato" onchange="updateCb(this)"/> Sterrato</label>
-        <label class="cb-item"><input type="checkbox" id="cb_costa" onchange="updateCb(this)"/> Costiero</label>
-        <label class="cb-item"><input type="checkbox" id="cb_cibo" checked onchange="updateCb(this)"/> Soste cibo</label>
-      </div>
+      <label class="fl"><i class="ti ti-compass" style="color:var(--or);font-size:12px"></i> Zona da visitare (opzionale)</label>
+      <input type="text" id="zona" placeholder="Es. Val Seriana, Lago d'Iseo, passi orobici"/>
     </div>
 
-    <!-- ANELLO TOGGLE -->
-    <div class="anello-toggle on" id="anelloToggle" onclick="toggleAnello()">
-      <div class="anello-left">
-        <i class="ti ti-refresh"></i>
-        <div class="anello-text">
-          <strong>Giro ad anello</strong>
-          <span id="anelloSub">Ritorna al punto di partenza</span>
+    <!-- Priority + Sliders -->
+    <div>
+      <div class="pri-box" style="margin-bottom:12px">
+        <div class="pri-title"><i class="ti ti-adjustments-horizontal"></i> Cosa conta di più?</div>
+        <div class="pri-opts">
+          <div class="po active" id="pr-time" onclick="setPri('time')">
+            <div class="po-name">⏱ Tempo</div>
+            <div class="po-hint">I km si adattano alla durata</div>
+          </div>
+          <div class="po" id="pr-km" onclick="setPri('km')">
+            <div class="po-name">📏 Distanza</div>
+            <div class="po-hint">La durata si adatta ai km</div>
+          </div>
         </div>
       </div>
-      <div class="toggle-pill" id="anelloPill"></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="sl-row">
+          <div class="sl-top">
+            <span class="sl-name"><i class="ti ti-clock"></i> Lunghezza del giro</span>
+            <span class="sl-val" id="durataVal">3h</span>
+          </div>
+          <input type="range" id="durataRange" min="1" max="10" step=".5" value="3" oninput="document.getElementById('durataVal').textContent=this.value+'h'"/>
+          <div class="sl-note" id="durataNote">Priorità attiva — i km si adatteranno</div>
+        </div>
+        <div class="sl-row">
+          <div class="sl-top">
+            <span class="sl-name"><i class="ti ti-road"></i> Distanza</span>
+            <span class="sl-val dim" id="kmVal">150 km</span>
+          </div>
+          <input type="range" id="kmRange" min="30" max="800" step="10" value="150" disabled oninput="document.getElementById('kmVal').textContent=this.value+' km'"/>
+          <div class="sl-note" id="kmNote" style="display:none">Priorità attiva — la durata si adatterà</div>
+        </div>
+      </div>
     </div>
 
-    <!-- DATA -->
+    <!-- Sterrato toggle -->
+    <div class="toggle-small" id="sterrRow" onclick="toggleSterr()">
+      <div class="ts-left"><i class="ti ti-mountain"></i> Sterrato — includi tratti non asfaltati panoramici</div>
+      <div class="pill-sm" id="sterrPill"></div>
+    </div>
+
+    <!-- Data -->
     <div>
-      <label class="fl">Data del giro (per il meteo)</label>
+      <label class="fl"><i class="ti ti-calendar" style="color:var(--or);font-size:12px"></i> Data del giro (per il meteo)</label>
       <input type="date" id="dataGiro"/>
     </div>
 
-    <!-- NOTE -->
-    <div>
-      <label class="fl">Note libere</label>
-      <textarea id="note" placeholder="es. voglio vedere un castello, evita autostrade…"></textarea>
-    </div>
+    </div><!-- /formSections -->
 
     <button class="btn-gen" id="btnGen" onclick="generateRoute()">
       <i class="ti ti-route"></i> GENERA IL MIO ITINERARIO
@@ -391,110 +441,113 @@ input[type=range]:disabled{opacity:.35;cursor:default}
 
   </div></div>
 
-  <div class="content">
-    <div id="map"></div>
-    <div class="result-panel" id="resultPanel">
-      <div class="result-empty"><i class="ti ti-map-pin-off"></i><span>Configura il giro e premi "Genera"</span></div>
+  <!-- RESULT -->
+  <div class="result-col" id="resultCol">
+    <div id="map" style="display:none"></div>
+    <div id="resultPanel" style="flex:1;overflow-y:auto;display:flex;flex-direction:column">
+      <div class="result-empty">
+        <div class="re-icon"><i class="ti ti-motorbike"></i></div>
+        <div class="re-title">Pronto a partire</div>
+        <div class="re-sub">Compila il form o usa "Giro vicino a me". Il tuo itinerario apparirà qui.</div>
+      </div>
     </div>
   </div>
+
 </div>
 </div>
 
-<!-- REGIONI -->
+<!-- ══ REGIONI ══ -->
 <div class="page" id="page-reg">
 <div class="reg-page"><div class="reg-inner">
-  <div class="reg-page-title">Itinerari per Regione</div>
-  <div class="reg-page-sub">Percorsi selezionati e pronti. Clicca per scoprire tappe e dettagli.</div>
+  <div class="rp-head">
+    <div class="rp-title">Itinerari per Regione</div>
+    <div class="rp-sub">Percorsi selezionati con foto reali. Clicca per scoprire tappe, mappa e navigatore.</div>
+  </div>
   <div class="reg-filter" id="regFilter"></div>
   <div class="reg-grid" id="regGrid"></div>
 </div></div>
 </div>
-</div>
 
+</div><!-- /app -->
+
+<!-- MODAL REGIONI -->
 <div class="mo" id="mo" onclick="closeMo(event)">
-  <div class="mb" id="mb"><div id="mc"></div></div>
+  <div class="mb" style="position:relative" id="mb"><div id="mc"></div></div>
 </div>
 
 <!-- DONATE POPUP -->
-<div id="donatePopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px)">
-  <div style="background:var(--smoke);border-radius:var(--r-lg);max-width:400px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.3);overflow:hidden;position:relative">
-    <div style="background:linear-gradient(135deg,var(--green-d),var(--green));padding:2rem 1.5rem 1.5rem;text-align:center;position:relative">
-      <div style="font-size:48px;margin-bottom:8px">&#127949;</div>
-      <div style="font-family:var(--ff-head);font-size:24px;font-weight:700;color:#fff;letter-spacing:.5px">Ti piace MotoRoute AI?</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.8);margin-top:6px;line-height:1.5">Il progetto e gratuito e senza pubblicita.<br>Una piccola donazione aiuta a tenerlo vivo e migliorarlo.</div>
+<div class="dp" id="dp" onclick="closeDpOverlay(event)">
+  <div class="dp-box">
+    <div class="dp-top">
+      <span class="dp-emoji">🏍️</span>
+      <div class="dp-title">Ti piace MotoRoute AI?</div>
+      <div class="dp-sub">Il progetto è gratuito e senza pubblicità.<br>Una piccola donazione aiuta a tenerlo vivo.</div>
     </div>
-    <div style="padding:1.5rem">
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.25rem">
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt2)"><span style="width:28px;height:28px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-server" style="color:var(--green);font-size:14px"></i></span>Copre i costi del server e dell AI</div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt2)"><span style="width:28px;height:28px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-map-plus" style="color:var(--green);font-size:14px"></i></span>Permette di aggiungere nuove regioni e funzionalita</div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt2)"><span style="width:28px;height:28px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-heart" style="color:var(--green);font-size:14px"></i></span>Sostiene un progetto fatto con passione per le moto</div>
+    <div class="dp-body">
+      <div class="dp-bullets">
+        <div class="dp-b"><div class="dp-bi"><i class="ti ti-server"></i></div>Copre i costi del server e dell'AI</div>
+        <div class="dp-b"><div class="dp-bi"><i class="ti ti-map-plus"></i></div>Permette di aggiungere nuove regioni</div>
+        <div class="dp-b"><div class="dp-bi"><i class="ti ti-heart"></i></div>Sostiene un progetto fatto con passione</div>
       </div>
-      <a href="https://www.paypal.com/donate/?business=f.brandonisio88%40gmail.com&currency_code=EUR" target="_blank"
-        style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:#003087;color:#fff;border-radius:var(--r);font-size:15px;font-weight:600;text-decoration:none;margin-bottom:10px;font-family:var(--ff-head);letter-spacing:.5px"
-        onclick="closeDonate(true)">
+      <a class="btn-paypal" href="https://www.paypal.com/donate/?business=f.brandonisio88%40gmail.com&currency_code=EUR" target="_blank" onclick="closeDonate(true)">
         <i class="ti ti-brand-paypal" style="font-size:20px"></i> DONA CON PAYPAL
       </a>
-      <button onclick="closeDonate(true)" style="width:100%;padding:10px;background:transparent;border:.5px solid var(--border2);border-radius:var(--r);font-size:13px;color:var(--txt2);cursor:pointer;font-family:var(--ff-body)">
-        Forse un altra volta
-      </button>
+      <button class="btn-maybe" onclick="closeDonate(true)">Forse un'altra volta</button>
     </div>
-    <button onclick="closeDonate(false)" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.2);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="ti ti-x"></i></button>
+    <button class="dp-close" onclick="closeDonate(false)"><i class="ti ti-x"></i></button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════
-// API KEY — sostituisci con la tua
-// ═══════════════════════
-const API_KEY = 'INSERISCI_QUI_LA_TUA_API_KEY';
+// ══════════════════════════
+// API KEY
+// ══════════════════════════
+const API_KEY = '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';
 
 // ── STATE ──
-let priority = 'time'; // 'time' | 'km'
+let priority = 'time';
 let anello = true;
+let sterrato = false;
 
 // ── NAV ──
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.getElementById('tab-'+id).classList.add('active');
   if(id==='reg') renderRegioni();
-  if(id==='gen') setTimeout(()=>map.invalidateSize(),100);
+  if(id==='gen') setTimeout(()=>{if(map) map.invalidateSize();},100);
 }
 
 // ── PRIORITY ──
-function setPriority(p){
+function setPri(p){
   priority=p;
   document.getElementById('pr-time').classList.toggle('active',p==='time');
   document.getElementById('pr-km').classList.toggle('active',p==='km');
-  const dRange=document.getElementById('durataRange');
-  const kRange=document.getElementById('kmRange');
-  const dVal=document.getElementById('durataVal');
-  const kVal=document.getElementById('kmVal');
-  const dNote=document.getElementById('durataNote');
-  const kNote=document.getElementById('kmNote');
-  if(p==='time'){
-    dRange.disabled=false; kRange.disabled=true;
-    dVal.classList.remove('dimmed'); kVal.classList.add('dimmed');
-    dNote.style.display='block'; kNote.style.display='none';
-  } else {
-    dRange.disabled=true; kRange.disabled=false;
-    kVal.classList.remove('dimmed'); dVal.classList.add('dimmed');
-    kNote.style.display='block'; dNote.style.display='none';
-  }
+  document.getElementById('durataRange').disabled=p!=='time';
+  document.getElementById('kmRange').disabled=p!=='km';
+  document.getElementById('durataVal').classList.toggle('dim',p!=='time');
+  document.getElementById('kmVal').classList.toggle('dim',p!=='km');
+  document.getElementById('durataNote').style.display=p==='time'?'block':'none';
+  document.getElementById('kmNote').style.display=p==='km'?'block':'none';
 }
 
 // ── ANELLO ──
 function toggleAnello(){
   anello=!anello;
-  const el=document.getElementById('anelloToggle');
-  el.classList.toggle('on',anello);
-  document.getElementById('anelloSub').textContent=anello?'Ritorna al punto di partenza':'Percorso a tratta libera';
+  document.getElementById('anelloRow').classList.toggle('on',anello);
+  document.getElementById('anelloSub').textContent=anello?'Ritorno al punto di partenza':'Percorso a tratta libera';
 }
 
-// ── LOCATION ──
+// ── STERRATO ──
+function toggleSterr(){
+  sterrato=!sterrato;
+  document.getElementById('sterrRow').classList.toggle('on',sterrato);
+}
+
+// ── GPS ──
 function useMyLocation(){
   const btn=document.getElementById('btnLoc');
   btn.innerHTML='<i class="ti ti-loader" style="animation:spin .8s linear infinite"></i>';
@@ -503,88 +556,108 @@ function useMyLocation(){
     try{
       const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
       const d=await r.json();
-      const city=d.address.city||d.address.town||d.address.village||d.address.municipality||'Posizione attuale';
-      document.getElementById('start').value=city;
-    }catch(e){
-      document.getElementById('start').value=`${lat.toFixed(4)},${lon.toFixed(4)}`;
-    }
-    btn.innerHTML='<i class="ti ti-current-location-filled" style="color:var(--green)"></i>';
-    setTimeout(()=>{btn.innerHTML='<i class="ti ti-current-location"></i>';},3000);
-  }, err=>{
+      document.getElementById('start').value=d.address.city||d.address.town||d.address.village||d.address.municipality||`${lat.toFixed(4)},${lon.toFixed(4)}`;
+    }catch(e){ document.getElementById('start').value=`${lat.toFixed(4)},${lon.toFixed(4)}`; }
+    btn.innerHTML='<i class="ti ti-current-location-filled" style="color:var(--or)"></i>';
+    setTimeout(()=>btn.innerHTML='<i class="ti ti-current-location"></i>',3000);
+  },()=>{
     btn.innerHTML='<i class="ti ti-current-location"></i>';
-    showToast('Posizione non disponibile. Attiva la geolocalizzazione.');
+    showToast('Posizione non disponibile.');
   });
 }
 
-// ── CHECKBOX ──
-function updateCb(inp){
-  const label=inp.closest('.cb-item');
-  label.classList.toggle('checked',inp.checked);
+// ── MAP (lazy init) ──
+let map=null,rl=null,ml=null;
+function initMap(){
+  if(map) return;
+  document.getElementById('map').style.display='block';
+  map=L.map('map',{zoomControl:true}).setView([44.4,11.3],7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(map);
+  rl=L.layerGroup().addTo(map);
+  ml=L.layerGroup().addTo(map);
 }
-document.querySelectorAll('.cb-item input:checked').forEach(inp=>inp.closest('.cb-item').classList.add('checked'));
 
-// ── MAP ──
-const map=L.map('map',{zoomControl:true}).setView([44.4,11.3],7);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(map);
-const rl=L.layerGroup().addTo(map),ml=L.layerGroup().addTo(map);
+// ── QUICK GENERATE ──
+async function quickGenerate(){
+  const btn=document.getElementById('btnGen');
+  const panel=document.getElementById('resultPanel');
+  document.getElementById('btnGen').disabled=true;
+  panel.innerHTML='<div class="loading-overlay"><div class="sp"></div><span>Rilevamento posizione…</span></div>';
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const {latitude:lat,longitude:lon}=pos.coords;
+    let city='la mia posizione';
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+      const d=await r.json(); city=d.address.city||d.address.town||d.address.village||city;
+    }catch(e){}
+    document.getElementById('start').value=city;
+    document.getElementById('durataRange').value=3;
+    document.getElementById('durataVal').textContent='3h';
+    await runGenerate({start:city,moto:'qualsiasi',durata:3,km:150,priority:'time',anello:true,sterrato:false,dream:'',zona:'',data:document.getElementById('dataGiro').value});
+    btn.disabled=false;
+  },()=>{
+    panel.innerHTML='<div class="err">Posizione non disponibile. Inserisci manualmente la partenza.</div>';
+    btn.disabled=false;
+  });
+}
+
+// ── DATE DEFAULT ──
 document.getElementById('dataGiro').value=new Date().toISOString().slice(0,10);
 
 // ── GENERATE ──
 async function generateRoute(){
-  const fd=getFormData(),btn=document.getElementById('btnGen'),panel=document.getElementById('resultPanel');
-  btn.disabled=true; btn.innerHTML='<div class="spinner"></div> GENERANDO…';
-  panel.innerHTML='<div class="loading-overlay"><div class="sp2"></div><span>L\'AI sta pianificando il tuo giro…</span></div>';
+  const fd={
+    start:document.getElementById('start').value||'Italia',
+    moto:document.getElementById('moto').value,
+    durata:document.getElementById('durataRange').value,
+    km:document.getElementById('kmRange').value,
+    priority,anello,sterrato,
+    dream:document.getElementById('dream').value,
+    zona:document.getElementById('zona').value,
+    data:document.getElementById('dataGiro').value,
+  };
+  document.getElementById('btnGen').disabled=true;
+  await runGenerate(fd);
+  document.getElementById('btnGen').disabled=false;
+  document.getElementById('btnGen').innerHTML='<i class="ti ti-route"></i> GENERA IL MIO ITINERARIO';
+}
+
+async function runGenerate(fd){
+  const panel=document.getElementById('resultPanel');
+  document.getElementById('btnGen').innerHTML='<div class="spinner"></div> GENERANDO…';
+  panel.innerHTML='<div class="loading-overlay"><div class="sp"></div><span>L\'AI sta pianificando il tuo giro…</span></div>';
   try{
     const route=await callAI(fd);
     const weather=await fetchWeather(route.tappe,fd.data);
+    initMap();
     renderResult(route,weather,fd);
   }catch(e){
     panel.innerHTML=`<div class="err"><strong><i class="ti ti-alert-circle"></i> Errore — </strong>${e.message||'Controlla la API key e riprova.'}</div>`;
   }
-  btn.disabled=false; btn.innerHTML='<i class="ti ti-route"></i> GENERA IL MIO ITINERARIO';
-}
-
-function getFormData(){
-  return{
-    start:document.getElementById('start').value||'Bologna',
-    moto:document.getElementById('moto').value,
-    durata:document.getElementById('durataRange').value,
-    km:document.getElementById('kmRange').value,
-    priority,anello,
-    passi:document.getElementById('cb_passi').checked,
-    panoramico:document.getElementById('cb_panoramico').checked,
-    sterrato:document.getElementById('cb_sterrato').checked,
-    costa:document.getElementById('cb_costa').checked,
-    cibo:document.getElementById('cb_cibo').checked,
-    note:document.getElementById('note').value,
-    data:document.getElementById('dataGiro').value,
-  };
 }
 
 async function callAI(fd){
-  const stili=[
-    fd.passi?'passi alpini':'',fd.panoramico?'strade panoramiche':'',
-    fd.sterrato?'sterrato/off-road':'',fd.costa?'percorso costiero':'',
-    fd.cibo?'soste gastronomiche':''
-  ].filter(Boolean).join(', ');
   const vincolo=fd.priority==='time'
-    ? `La durata è il vincolo principale: ESATTAMENTE ${fd.durata} ore di guida. Adatta la distanza di conseguenza.`
-    : `La distanza è il vincolo principale: ESATTAMENTE ${fd.km} km totali. Adatta la durata di conseguenza.`;
-  const ringPrompt=fd.anello
-    ? 'Il percorso deve essere UN ANELLO: l\'ultima tappa deve coincidere con il punto di partenza.'
-    : 'Il percorso è a tratta libera: non deve necessariamente tornare al punto di partenza.';
+    ?`La durata è il vincolo principale: circa ${fd.durata} ore di guida. Adatta la distanza.`
+    :`La distanza è il vincolo principale: circa ${fd.km} km totali. Adatta la durata.`;
+  const ringP=fd.anello?'Percorso AD ANELLO: ultima tappa = punto di partenza.':'Percorso a tratta libera.';
+  const sterrP=fd.sterrato?'Includi tratti sterrati panoramici se interessanti.':'Evita sterrato, solo asfalto.';
+  const dreamP=fd.dream?`Richiesta speciale dell'utente: "${fd.dream}".`:'';
+  const zonaP=fd.zona?`Zona preferita da visitare: ${fd.zona}.`:'';
 
-  const prompt=`Sei un esperto di percorsi in moto in Italia. Crea un itinerario con queste regole:
+  const prompt=`Sei un esperto di percorsi in moto in Italia. Crea un itinerario:
 - Partenza: ${fd.start}
 - Moto: ${fd.moto}
 - ${vincolo}
-- ${ringPrompt}
-- Stile: ${stili||'libero'}
-- Note: ${fd.note||'nessuna'}
+- ${ringP}
+- ${sterrP}
+${dreamP}
+${zonaP}
 
+Includi ALMENO una tappa di tipo "ristorante" con un agriturismo, osteria o trattoria bike-friendly reale o tipica della zona.
 Rispondi SOLO JSON valido senza markdown:
-{"titolo":"max 6 parole evocative","sottotitolo":"una frase descrittiva","km_totali":N,"durata_ore":N,"difficolta":"Facile|Media|Impegnativa","highlights":"2-3 punti salienti del percorso","tappe":[{"nome":"luogo reale","lat":N,"lon":N,"descrizione":"cosa vedere o fare, max 2 righe","tipo":"partenza|percorso|sosta_cibo|punto_panoramico|passo|arrivo","km_da_inizio":N,"tempo_min":N}]}
-6-9 tappe con coordinate italiane accurate. Includi almeno 1 tappa di tipo "ristorante" per un ristorante locale, agriturismo o osteria bike-friendly lungo il percorso, con nome specifico e reale del locale se lo conosci, altrimenti descrivi il tipo di posto consigliato in quella zona.`;
+{"titolo":"max 6 parole evocative","sottotitolo":"una frase","km_totali":N,"durata_ore":N,"difficolta":"Facile|Media|Impegnativa","highlights":"2-3 punti salienti","tappe":[{"nome":"luogo reale","lat":N,"lon":N,"descrizione":"cosa fare, max 2 righe","tipo":"partenza|percorso|sosta_cibo|ristorante|punto_panoramico|passo|arrivo","km_da_inizio":N,"tempo_min":N}]}
+6-9 tappe con coordinate italiane accurate.`;
 
   const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
@@ -618,65 +691,71 @@ function wmo(c){
 }
 
 function renderResult(route,weather,fd){
-  const panel=document.getElementById('resultPanel');
   rl.clearLayers(); ml.clearLayers();
   const coords=route.tappe.map(t=>[t.lat,t.lon]);
-  if(coords.length>1) L.polyline(coords,{color:'#1bbd87',weight:4.5,opacity:.9}).addTo(rl);
+  if(coords.length>1) L.polyline(coords,{color:'#E8820A',weight:4,opacity:.9}).addTo(rl);
   route.tappe.forEach((t,i)=>{
     const isS=i===0,isE=i===route.tappe.length-1;
-    const bg=isS?'#1bbd87':isE?'#c0392b':'#2471c8';
-    const icon=L.divIcon({html:`<div style="width:26px;height:26px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);font-family:'Barlow Condensed',sans-serif">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13],className:''});
+    const bg=isS?'#1bbd87':isE?'#c0392b':'#E8820A';
+    const icon=L.divIcon({html:`<div style="width:26px;height:26px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid #0f1012;box-shadow:0 2px 8px rgba(0,0,0,.5)">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13],className:''});
     L.marker([t.lat,t.lon],{icon}).bindPopup(`<b>${t.nome}</b><br><small>${t.descrizione}</small>`).addTo(ml);
   });
-  if(coords.length) map.fitBounds(L.latLngBounds(coords),{padding:[32,32]});
+  if(coords.length) map.fitBounds(L.latLngBounds(coords),{padding:[28,28]});
+
   const dc={Facile:'b-g',Media:'b-a',Impegnativa:'b-r'};
-  const ti={partenza:'ti-flag-2',arrivo:'ti-flag-checkered',percorso:'ti-road',sosta_cibo:'ti-tools-kitchen-2',ristorante:'ti-building-store',punto_panoramico:'ti-mountain',passo:'ti-chevrons-up'};
-  const tl={partenza:'Partenza',arrivo:'Arrivo',percorso:'Percorso',sosta_cibo:'Sosta cibo',ristorante:'🍴 Bike-friendly',punto_panoramico:'Panorama',passo:'Passo'};
-  const tc={partenza:'tg',arrivo:'tg',sosta_cibo:'ta',ristorante:'ta',punto_panoramico:'tb',passo:'tb'};
+  const TI={partenza:'ti-flag-2',arrivo:'ti-flag-checkered',percorso:'ti-road',sosta_cibo:'ti-tools-kitchen-2',ristorante:'ti-building-store',punto_panoramico:'ti-mountain',passo:'ti-chevrons-up'};
+  const TL={partenza:'Partenza',arrivo:'Arrivo',percorso:'Percorso',sosta_cibo:'Sosta cibo',ristorante:'🍴 Bike-friendly',punto_panoramico:'Panorama',passo:'Passo'};
+  const TC={partenza:'tg',arrivo:'tg',sosta_cibo:'to',ristorante:'to',punto_panoramico:'tb',passo:'tb'};
+
   const stopsHtml=route.tappe.map((t,i)=>{
     let mh='';
     if(weather[i]){const w=weather[i];const wc=wmo(w.code);const cl=w.pioggia>60?'alert':w.pioggia>30?'warn':'';
-      mh=`<span class="mc ${cl}"><i class="ti ${wc.i}"></i>${w.tmax}°/${w.tmin}° · ${w.pioggia}% pioggia · ${w.vento}km/h</span>`;}
-    return `<div class="stop-item"><div class="sn">${i+1}</div><div class="sc2">
-      <div class="sname"><i class="ti ${ti[t.tipo]||'ti-map-pin'}" style="vertical-align:-2px;margin-right:4px;color:var(--green)"></i>${t.nome}</div>
+      mh=`<span class="mc ${cl}"><i class="ti ${wc.i}"></i>${w.tmax}°/${w.tmin}° · ${w.pioggia}%</span>`;}
+    return `<div class="stop-item"><div class="snum">${i+1}</div><div class="sc2">
+      <div class="sname"><i class="ti ${TI[t.tipo]||'ti-map-pin'}" style="color:var(--or)"></i>${t.nome}</div>
       <div class="sdesc">${t.descrizione}</div>
-      <div class="stags"><span class="tag ${tc[t.tipo]||''}">${tl[t.tipo]||t.tipo}</span>
+      <div class="stags"><span class="tag ${TC[t.tipo]||''}">${TL[t.tipo]||t.tipo}</span>
         ${t.km_da_inizio?`<span class="tag">${t.km_da_inizio} km</span>`:''}
-        ${t.tempo_min?`<span class="tag"><i class="ti ti-clock" style="vertical-align:-1px"></i> ${t.tempo_min} min</span>`:''}
+        ${t.tempo_min?`<span class="tag"><i class="ti ti-clock" style="vertical-align:-1px"></i> ${t.tempo_min}min</span>`:''}
         ${mh}
       </div>
     </div></div>`;
   }).join('');
+
   const w0=weather[0];let ms='';
   if(w0){const ico=wmo(w0.code);const dl=fd.data?new Date(fd.data+'T12:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'long'}):'oggi';
-    const wm=w0.pioggia>60?`<span style="color:var(--red)"><i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> Alta probabilità pioggia — valuta di rimandare</span>`:w0.pioggia>30?`<span style="color:var(--amber)"><i class="ti ti-cloud-rain" style="vertical-align:-2px"></i> Porta l'antipioggia</span>`:`<span style="color:var(--green-d)"><i class="ti ti-check" style="vertical-align:-2px"></i> Condizioni favorevoli</span>`;
-    ms=`<div style="background:var(--smoke2);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:.5px solid var(--border)"><i class="ti ${ico.i}" style="font-size:20px;color:var(--blue)"></i><div><strong>${ico.l}</strong> il ${dl} · ${w0.tmax}°/${w0.tmin}° · Vento ${w0.vento}km/h<br>${wm}</div></div>`;}
+    const wm=w0.pioggia>60?`<span class="ma"><i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> Alta probabilità pioggia</span>`:w0.pioggia>30?`<span class="mw"><i class="ti ti-cloud-rain" style="vertical-align:-2px"></i> Porta l'antipioggia</span>`:`<span style="color:var(--green)"><i class="ti ti-check" style="vertical-align:-2px"></i> Condizioni favorevoli</span>`;
+    ms=`<div class="meteo-bar"><i class="ti ${ico.i}" style="font-size:20px;color:var(--blue)"></i><div><strong>${ico.l}</strong> · ${dl} · ${w0.tmax}°/${w0.tmin}° · Vento ${w0.vento}km/h<br>${wm}</div></div>`;}
+
   const st=encodeURIComponent(`🏍️ ${route.titolo}\n${route.sottotitolo}\n${route.km_totali}km · ${route.durata_ore}h\n\nGenerato con MotoRoute AI`);
   const su=encodeURIComponent(window.location.href);
-  panel.innerHTML=`<div class="ri">
-    <div class="route-header">
-      <div><div class="route-title">${route.titolo}</div><div class="route-sub">${route.sottotitolo}</div></div>
+
+  const panel=document.getElementById('resultPanel');
+  panel.innerHTML=`<div class="result-inner">
+    <div class="rh">
+      <div><div class="r-title">${route.titolo}</div><div class="r-sub">${route.sottotitolo}</div></div>
       <span class="badge ${dc[route.difficolta]||'b-g'}">${route.difficolta}</span>
     </div>
     <div class="stats-row">
-      <div class="sc"><div class="sv">${route.km_totali}</div><div class="sl">km totali</div></div>
-      <div class="sc"><div class="sv">${route.durata_ore}h</div><div class="sl">durata</div></div>
-      <div class="sc"><div class="sv">${route.tappe.length}</div><div class="sl">tappe</div></div>
-      <div class="sc"><div class="sv">${Math.round(route.km_totali/route.durata_ore)}</div><div class="sl">km/h media</div></div>
+      <div class="sc"><div class="sv">${route.km_totali}</div><div class="sl2">km totali</div></div>
+      <div class="sc"><div class="sv">${route.durata_ore}h</div><div class="sl2">durata</div></div>
+      <div class="sc"><div class="sv">${route.tappe.length}</div><div class="sl2">tappe</div></div>
+      <div class="sc"><div class="sv">${Math.round(route.km_totali/route.durata_ore)}</div><div class="sl2">km/h media</div></div>
     </div>
     ${ms}
-    <div class="highlights"><i class="ti ti-sparkles" style="color:var(--green);margin-right:4px"></i>${route.highlights}</div>
+    <div class="hl"><i class="ti ti-sparkles" style="color:var(--or);margin-right:4px"></i>${route.highlights}</div>
     ${stopsHtml}
     <div class="actions">
       <button class="btn-a p" onclick="downloadGPX()"><i class="ti ti-download"></i> GPX</button>
       <button class="btn-a" onclick="openGMaps()"><i class="ti ti-map"></i> Google Maps</button>
-      <button class="btn-a fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${su}&quote=${st}','_blank')"><i class="ti ti-brand-facebook"></i> Facebook</button>
-      <button class="btn-a wa" onclick="window.open('https://wa.me/?text=${st}%20${su}','_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
-      <button class="btn-a tw" onclick="window.open('https://twitter.com/intent/tweet?text=${st}&url=${su}','_blank')"><i class="ti ti-brand-x"></i> X</button>
+      <button class="btn-a fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${su}&quote=${st}','_blank')"><i class="ti ti-brand-facebook"></i></button>
+      <button class="btn-a wa" onclick="window.open('https://wa.me/?text=${st}%20${su}','_blank')"><i class="ti ti-brand-whatsapp"></i></button>
+      <button class="btn-a tw" onclick="window.open('https://twitter.com/intent/tweet?text=${st}&url=${su}','_blank')"><i class="ti ti-brand-x"></i></button>
       <button class="btn-a" onclick="copyRoute()"><i class="ti ti-copy"></i> Copia</button>
     </div>
   </div>`;
   window._cr=route;
+  setTimeout(()=>map.invalidateSize(),50);
 }
 
 function downloadGPX(){
@@ -688,7 +767,8 @@ function downloadGPX(){
 }
 function openGMaps(){
   const r=window._cr;if(!r)return;
-  const o=r.tappe[0],d=r.tappe[r.tappe.length-1],wp=r.tappe.slice(1,-1).map(t=>`${t.lat},${t.lon}`).join('|');
+  const o=r.tappe[0],d=r.tappe[r.tappe.length-1];
+  const wp=r.tappe.slice(1,-1).map(t=>`${t.lat},${t.lon}`).join('|');
   window.open(`https://www.google.com/maps/dir/?api=1&origin=${o.lat},${o.lon}&destination=${d.lat},${d.lon}&waypoints=${wp}&travelmode=driving`,'_blank');
 }
 function copyRoute(){
@@ -696,23 +776,53 @@ function copyRoute(){
   navigator.clipboard.writeText(`🏍️ ${r.titolo}\n${r.sottotitolo}\n\n📏 ${r.km_totali}km · ⏱️ ${r.durata_ore}h\n\n📍 Tappe:\n`+r.tappe.map((t,i)=>`${i+1}. ${t.nome} — ${t.descrizione}`).join('\n')+'\n\nGenerato con MotoRoute AI').then(()=>showToast('Testo copiato!')).catch(()=>{});
 }
 
-// ── REGIONI ──
+// ══ REGIONI ══
 const RD=[
-  {id:1,r:'Lombardia',z:'Nord',e:'🏔️',bg:'linear-gradient(135deg,#c8e6d4,#a8d5e8)',t:'Triangolo Lariano',d:'Un giro spettacolare tra i laghi più belli d\'Italia, con curve panoramiche sul Lago di Como.',km:180,h:'4h',df:'Media',tappe:[{n:'Como',d:'Punto di partenza, lungolago e ville liberty'},{n:'Bellagio',d:'Il balcone dei laghi'},{n:'Lecco',d:'Centro storico e il ponte Azzone Visconti'},{n:'Bergamo Alta',d:'Città medievale, mura veneziane UNESCO'},{n:'Como',d:'Rientro via Valassina'}]},
-  {id:2,r:'Lombardia',z:'Nord',e:'⛰️',bg:'linear-gradient(135deg,#d4c8e6,#c8d5e8)',t:'Stelvio & Mortirolo',d:'Due passi leggendari in una giornata. I 48 tornanti dello Stelvio e il temuto Mortirolo.',km:260,h:'6h',df:'Impegnativa',tappe:[{n:'Bormio',d:'Base di partenza, terme e centro storico'},{n:'Passo dello Stelvio',d:'2758m, 48 tornanti'},{n:'Santa Maria Valvenosta',d:'Pausa in Val Venosta'},{n:'Aprica',d:'Valico tra Valtellina e Val Camonica'},{n:'Mortirolo',d:'Il passo che fa piangere i campioni'},{n:'Bormio',d:'Rientro'}]},
-  {id:3,r:'Lombardia',z:'Nord',e:'🌊',bg:'linear-gradient(135deg,#b8d8f0,#c8e8d8)',t:'Gardesana Occidentale',d:'La strada più bella del Garda, scavata nella roccia a picco sul lago.',km:140,h:'3h',df:'Facile',tappe:[{n:'Desenzano del Garda',d:'Partenza dal Basso Garda'},{n:'Salò',d:'Lungolago elegante'},{n:'Gargnano',d:'Borgo medievale e limonaie'},{n:'Limone sul Garda',d:'Il paese dei limoni'},{n:'Riva del Garda',d:'Capolinea nord'}]},
-  {id:4,r:'Toscana',z:'Centro',e:'🌾',bg:'linear-gradient(135deg,#e8d8a0,#d4c880)',t:'Chianti Classico',d:'Cipressi, vigneti, borghi medievali. Il cuore della Toscana tra Firenze e Siena.',km:150,h:'3.5h',df:'Facile',tappe:[{n:'Firenze',d:'Culla del Rinascimento'},{n:'Greve in Chianti',d:'Piazza medievale e vino'},{n:'Radda in Chianti',d:'Borgo murato panoramico'},{n:'Castellina in Chianti',d:'Rocca medievale e cantine'},{n:'Siena',d:'Piazza del Campo'}]},
-  {id:5,r:'Toscana',z:'Centro',e:'🐴',bg:'linear-gradient(135deg,#d4b896,#c8a878)',t:'Val d\'Orcia & Maremma',d:'Le colline senesi, i cipressi e la costa maremmana in un percorso di arte, natura e gusto.',km:220,h:'5h',df:'Facile',tappe:[{n:'Siena',d:'Partenza'},{n:'Pienza',d:'La città ideale del Rinascimento'},{n:'Montalcino',d:'Brunello di Montalcino'},{n:'Pitigliano',d:'La piccola Gerusalemme tufacea'},{n:'Orbetello',d:'Laguna e Argentario'},{n:'Grosseto',d:'Rientro in Maremma'}]},
-  {id:6,r:'Toscana',z:'Centro',e:'⛏️',bg:'linear-gradient(135deg,#d8d0c8,#c0b8b0)',t:'Versilia & Carrara',d:'Dalla Versilia alle cave di marmo bianco delle Alpi Apuane: un percorso di contrasti.',km:170,h:'4h',df:'Media',tappe:[{n:'Viareggio',d:'Lungomare art déco'},{n:'Forte dei Marmi',d:'La perla della Versilia'},{n:'Carrara',d:'Cave di marmo bianco'},{n:'Pontremoli',d:'Borgo in Val di Magra'},{n:'La Spezia',d:'Golfo dei Poeti'}]},
-  {id:7,r:'Sicilia',z:'Sud',e:'🌋',bg:'linear-gradient(135deg,#e8a878,#d87040)',t:'Giro dell\'Etna',d:'Il vulcano più alto d\'Europa: lava, borghi barocchi e mare cristallino ionio.',km:200,h:'5h',df:'Media',tappe:[{n:'Catania',d:'Ai piedi dell\'Etna'},{n:'Zafferana Etnea',d:'Versante est, miele e lava'},{n:'Rifugio Sapienza',d:'1923m, vista cratere'},{n:'Randazzo',d:'Borgo in pietra lavica'},{n:'Taormina',d:'Il balcone della Sicilia'},{n:'Catania',d:'Rientro costiero'}]},
-  {id:8,r:'Sicilia',z:'Sud',e:'🏛️',bg:'linear-gradient(135deg,#e8d0a0,#d4b870)',t:'Valle dei Templi',d:'Palermo, Agrigento e l\'entroterra: siti UNESCO, colline dorate e borghi antichi.',km:180,h:'4h',df:'Facile',tappe:[{n:'Palermo',d:'Partenza'},{n:'Corleone',d:'I Monti Sicani'},{n:'Agrigento',d:'Valle dei Templi UNESCO'},{n:'Sciacca',d:'Città termale'},{n:'Selinunte',d:'Parco archeologico immenso'},{n:'Mazara del Vallo',d:'Porto arabo-normanno'}]},
-  {id:9,r:'Sicilia',z:'Sud',e:'🌊',bg:'linear-gradient(135deg,#90d0e8,#60b8d8)',t:'Costa Nord & Cefalù',d:'La costa tirrenica: Riserva dello Zingaro, San Vito Lo Capo e la splendida Cefalù.',km:160,h:'3.5h',df:'Facile',tappe:[{n:'Palermo',d:'Partenza'},{n:'Mondello',d:'La spiaggia art nouveau'},{n:'Riserva dello Zingaro',d:'Prima riserva siciliana'},{n:'San Vito Lo Capo',d:'Spiaggia da cartolina'},{n:'Cefalù',d:'Duomo normanno sul mare'}]},
-  {id:10,r:'Trentino-Alto Adige',z:'Nord',e:'🏔️',bg:'linear-gradient(135deg,#b8d0e8,#90b8d0)',t:'Sella Ronda',d:'Il giro più famoso delle Dolomiti UNESCO: quattro passi, quattro valli.',km:120,h:'4h',df:'Media',tappe:[{n:'Canazei',d:'Val di Fassa'},{n:'Passo Pordoi',d:'2239m, il Re dei Passi'},{n:'Arabba',d:'Vista Marmolada'},{n:'Corvara',d:'Alta Badia'},{n:'Passo Gardena',d:'2121m'},{n:'Selva Gardena',d:'Borgo tirolese'},{n:'Passo Sella',d:'2244m'},{n:'Canazei',d:'Arrivo'}]},
-  {id:11,r:'Trentino-Alto Adige',z:'Nord',e:'⛰️',bg:'linear-gradient(135deg,#c8d8e8,#a8c0d8)',t:'Tre Cime & Cortina',d:'Le Tre Cime di Lavaredo e Cortina: l\'itinerario icona delle Dolomiti.',km:150,h:'4h',df:'Media',tappe:[{n:'Dobbiaco',d:'Val Pusteria'},{n:'Tre Cime di Lavaredo',d:'2333m, il simbolo delle Dolomiti'},{n:'Misurina',d:'Il lago specchio'},{n:'Cortina d\'Ampezzo',d:'La Regina delle Dolomiti'},{n:'Passo Falzarego',d:'2117m'},{n:'Dobbiaco',d:'Rientro'}]},
-  {id:12,r:'Campania',z:'Sud',e:'🌊',bg:'linear-gradient(135deg,#a0c8e8,#78b0d8)',t:'Costiera Amalfitana',d:'La SS163, una delle strade più belle del mondo: curve, strapiombi e borghi colorati.',km:100,h:'3h',df:'Media',tappe:[{n:'Sorrento',d:'Golfo di Napoli'},{n:'Positano',d:'Il gioiello verticale'},{n:'Praiano',d:'Borgo autentico'},{n:'Amalfi',d:'Duomo arabo-normanno'},{n:'Ravello',d:'Giardini sopra il mare'},{n:'Vietri sul Mare',d:'Capitale della ceramica'}]},
-  {id:13,r:'Campania',z:'Sud',e:'🏛️',bg:'linear-gradient(135deg,#d8c8a8,#c0a880)',t:'Cilento Segreto',d:'Il Parco Nazionale del Cilento: mare, montagna, siti greci e cucina autentica.',km:240,h:'5h',df:'Facile',tappe:[{n:'Salerno',d:'Partenza'},{n:'Paestum',d:'Templi greci UNESCO'},{n:'Agropoli',d:'Promontorio sul mare'},{n:'Castellabate',d:'Borgo nel parco'},{n:'Velia',d:'Antica Elea'},{n:'Palinuro',d:'Grotte marine e capo'}]},
-  {id:14,r:'Piemonte',z:'Nord',e:'🍷',bg:'linear-gradient(135deg,#d8b0a0,#c89080)',t:'Langhe & Barolo',d:'Le colline UNESCO del Barolo: nebbia mattutina, tartufo bianco e i vini più grandi d\'Italia.',km:160,h:'4h',df:'Facile',tappe:[{n:'Alba',d:'Capitale tartufo e Barolo'},{n:'La Morra',d:'Belvedere 360° sulle Langhe'},{n:'Barolo',d:'Il paese del re dei vini'},{n:'Nizza Monferrato',d:'Barbera d\'Asti'},{n:'Asti',d:'Palio e Moscato'},{n:'Alba',d:'Rientro'}]},
-  {id:15,r:'Piemonte',z:'Nord',e:'🏔️',bg:'linear-gradient(135deg,#c0c8d8,#a0b0c8)',t:'Agnello & Izoard',d:'Due valichi leggendari al confine con la Francia. Quota 2748m e paesaggi lunari.',km:200,h:'5h',df:'Impegnativa',tappe:[{n:'Cuneo',d:'Partenza'},{n:'Saluzzo',d:'Borgo rinascimentale'},{n:'Pontechianale',d:'Lago turchese in quota'},{n:'Colle dell\'Agnello',d:'2748m, tra i più alti delle Alpi'},{n:'Colle dell\'Izoard',d:'2360m, le Casse Deserte'},{n:'Cuneo',d:'Rientro'}]},
+  {id:1,r:'Lombardia',z:'Nord',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/BellagioOnLakeComo.jpg/800px-BellagioOnLakeComo.jpg',t:'Triangolo Lariano',d:'Un giro spettacolare tra i laghi più belli d\'Italia, con curve panoramiche sul Lago di Como.',km:180,h:'4h',df:'Media',
+   coords:{o:[45.8081,9.0852],d:[45.8081,9.0852]},
+   tappe:[{n:'Como',d:'Punto di partenza, lungolago e ville liberty',lat:45.8081,lon:9.0852},{n:'Bellagio',d:'Il balcone dei laghi',lat:45.9858,lon:9.2597},{n:'Lecco',d:'Centro storico e il ponte Azzone Visconti',lat:45.8566,lon:9.3932},{n:'Bergamo Alta',d:'Città medievale, mura veneziane UNESCO',lat:45.7044,lon:9.6711},{n:'Como',d:'Rientro via Valassina',lat:45.8081,lon:9.0852}]},
+  {id:2,r:'Lombardia',z:'Nord',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Stilfserjoch.jpg/800px-Stilfserjoch.jpg',t:'Stelvio & Mortirolo',d:'I 48 tornanti dello Stelvio e il temuto Mortirolo: due passi leggendari in una giornata.',km:260,h:'6h',df:'Impegnativa',
+   coords:{o:[46.5303,10.3780],d:[46.5303,10.3780]},
+   tappe:[{n:'Bormio',d:'Base di partenza, terme e centro storico',lat:46.4677,lon:10.3728},{n:'Passo dello Stelvio',d:'2758m, 48 tornanti iconici',lat:46.5252,lon:10.4541},{n:'Santa Maria Valvenosta',d:'Pausa in Val Venosta',lat:46.5963,lon:10.4218},{n:'Mortirolo',d:'Il passo che fa piangere i campioni',lat:46.2197,lon:10.3025},{n:'Bormio',d:'Rientro',lat:46.4677,lon:10.3728}]},
+  {id:3,r:'Lombardia',z:'Nord',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Lago_di_Garda_from_Riva_del_Garda.jpg/800px-Lago_di_Garda_from_Riva_del_Garda.jpg',t:'Gardesana Occidentale',d:'La strada più bella del Garda, scavata nella roccia a picco sul lago.',km:140,h:'3h',df:'Facile',
+   coords:{o:[45.4687,10.5176],d:[45.8864,10.8404]},
+   tappe:[{n:'Desenzano del Garda',d:'Partenza dal Basso Garda',lat:45.4687,lon:10.5176},{n:'Salò',d:'Lungolago elegante',lat:45.6063,lon:10.5197},{n:'Gargnano',d:'Borgo medievale e limonaie',lat:45.6935,lon:10.6584},{n:'Limone sul Garda',d:'Il paese dei limoni',lat:45.8083,lon:10.7912},{n:'Riva del Garda',d:'Capolinea nord',lat:45.8864,lon:10.8404}]},
+  {id:4,r:'Toscana',z:'Centro',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Chianti_region_-_panoramio.jpg/800px-Chianti_region_-_panoramio.jpg',t:'Chianti Classico',d:'Cipressi, vigneti, borghi medievali. Il cuore della Toscana tra Firenze e Siena.',km:150,h:'3.5h',df:'Facile',
+   coords:{o:[43.7696,11.2558],d:[43.3188,11.3307]},
+   tappe:[{n:'Firenze',d:'Culla del Rinascimento',lat:43.7696,lon:11.2558},{n:'Greve in Chianti',d:'Piazza medievale e vino',lat:43.5862,lon:11.3124},{n:'Radda in Chianti',d:'Borgo murato panoramico',lat:43.4864,lon:11.3765},{n:'Castellina in Chianti',d:'Rocca medievale e cantine',lat:43.4712,lon:11.2855},{n:'Siena',d:'Piazza del Campo',lat:43.3188,lon:11.3307}]},
+  {id:5,r:'Toscana',z:'Centro',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Val_d%27Orcia_pienza.jpg/800px-Val_d%27Orcia_pienza.jpg',t:"Val d'Orcia & Maremma",d:"Le colline senesi, i cipressi e la costa maremmana in un percorso di arte, natura e gusto.",km:220,h:'5h',df:'Facile',
+   coords:{o:[43.3188,11.3307],d:[42.7610,11.1137]},
+   tappe:[{n:'Siena',d:'Partenza',lat:43.3188,lon:11.3307},{n:'Pienza',d:'La città ideale del Rinascimento',lat:43.0765,lon:11.6790},{n:'Montalcino',d:'Brunello di Montalcino',lat:43.0567,lon:11.4893},{n:'Pitigliano',d:'La piccola Gerusalemme tufacea',lat:42.6354,lon:11.6706},{n:'Orbetello',d:'Laguna e Argentario',lat:42.4391,lon:11.2135},{n:'Grosseto',d:'Rientro in Maremma',lat:42.7610,lon:11.1137}]},
+  {id:6,r:'Toscana',z:'Centro',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Cava_di_marmo.jpg/800px-Cava_di_marmo.jpg',t:'Versilia & Carrara',d:'Dalla Versilia alle cave di marmo bianco delle Alpi Apuane: un percorso di contrasti.',km:170,h:'4h',df:'Media',
+   coords:{o:[43.8679,10.2360],d:[44.1014,9.8227]},
+   tappe:[{n:'Viareggio',d:'Lungomare art déco',lat:43.8679,lon:10.2360},{n:'Forte dei Marmi',d:'La perla della Versilia',lat:43.9602,lon:10.1699},{n:'Carrara',d:'Cave di marmo bianco spettacolari',lat:44.0797,lon:10.0997},{n:'Pontremoli',d:'Borgo in Val di Magra',lat:44.3760,lon:9.8825},{n:'La Spezia',d:'Golfo dei Poeti',lat:44.1014,lon:9.8227}]},
+  {id:7,r:'Sicilia',z:'Sud',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Etna_and_Taormina.jpg/800px-Etna_and_Taormina.jpg',t:"Giro dell'Etna",d:'Il vulcano più alto d\'Europa: lava, borghi barocchi e mare cristallino ionio.',km:200,h:'5h',df:'Media',
+   coords:{o:[37.5025,15.0870],d:[37.5025,15.0870]},
+   tappe:[{n:'Catania',d:'Ai piedi dell\'Etna',lat:37.5025,lon:15.0870},{n:'Zafferana Etnea',d:'Versante est, miele e lava',lat:37.6911,lon:15.1005},{n:'Rifugio Sapienza',d:'1923m, vista cratere',lat:37.7064,lon:14.9962},{n:'Randazzo',d:'Borgo in pietra lavica',lat:37.8745,lon:14.9472},{n:'Taormina',d:'Il balcone della Sicilia',lat:37.8522,lon:15.2869},{n:'Catania',d:'Rientro costiero',lat:37.5025,lon:15.0870}]},
+  {id:8,r:'Sicilia',z:'Sud',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Valley_of_the_Temples_Agrigento.jpg/800px-Valley_of_the_Temples_Agrigento.jpg',t:'Valle dei Templi',d:'Palermo, Agrigento UNESCO e l\'entroterra: siti antichi, colline dorate e borghi.',km:180,h:'4h',df:'Facile',
+   coords:{o:[38.1157,13.3615],d:[37.6492,13.3322]},
+   tappe:[{n:'Palermo',d:'Partenza',lat:38.1157,lon:13.3615},{n:'Corleone',d:'I Monti Sicani',lat:37.8132,lon:13.0612},{n:'Agrigento',d:'Valle dei Templi UNESCO',lat:37.3117,lon:13.5765},{n:'Sciacca',d:'Città termale',lat:37.5085,lon:13.0794},{n:'Selinunte',d:'Parco archeologico immenso',lat:37.5857,lon:12.8273},{n:'Mazara del Vallo',d:'Porto arabo-normanno',lat:37.6492,lon:12.5899}]},
+  {id:9,r:'Sicilia',z:'Sud',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Cefal%C3%B9_BW_2012-10-05_10-52-50.jpg/800px-Cefal%C3%B9_BW_2012-10-05_10-52-50.jpg',t:'Costa Nord & Cefalù',d:'La costa tirrenica: Riserva dello Zingaro, San Vito Lo Capo e la splendida Cefalù.',km:160,h:'3.5h',df:'Facile',
+   coords:{o:[38.1157,13.3615],d:[37.9997,14.0228]},
+   tappe:[{n:'Palermo',d:'Partenza',lat:38.1157,lon:13.3615},{n:'Mondello',d:'La spiaggia art nouveau',lat:38.2173,lon:13.3289},{n:'Riserva dello Zingaro',d:'Prima riserva siciliana',lat:38.0868,lon:12.8500},{n:'San Vito Lo Capo',d:'Spiaggia da cartolina',lat:38.1749,lon:12.7352},{n:'Cefalù',d:'Duomo normanno UNESCO sul mare',lat:37.9997,lon:14.0228}]},
+  {id:10,r:'Trentino-Alto Adige',z:'Nord',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Sella_group_from_Pordoi_pass.jpg/800px-Sella_group_from_Pordoi_pass.jpg',t:'Sella Ronda',d:'Il giro più famoso delle Dolomiti UNESCO: quattro passi, quattro valli.',km:120,h:'4h',df:'Media',
+   coords:{o:[46.4772,11.7706],d:[46.4772,11.7706]},
+   tappe:[{n:'Canazei',d:'Val di Fassa, partenza',lat:46.4772,lon:11.7706},{n:'Passo Pordoi',d:'2239m, il Re dei Passi',lat:46.4897,lon:11.8128},{n:'Arabba',d:'Vista Marmolada',lat:46.4994,lon:11.8705},{n:'Corvara',d:'Alta Badia',lat:46.5499,lon:11.8748},{n:'Passo Gardena',d:'2121m, vista Odle',lat:46.5710,lon:11.8303},{n:'Selva Gardena',d:'Borgo tirolese',lat:46.5566,lon:11.7595},{n:'Passo Sella',d:'2244m',lat:46.5035,lon:11.7553},{n:'Canazei',d:'Arrivo ad anello',lat:46.4772,lon:11.7706}]},
+  {id:11,r:'Trentino-Alto Adige',z:'Nord',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tre_Cime_di_Lavaredo%2C_Veneto%2C_Italy_-_Sept_2011.jpg/800px-Tre_Cime_di_Lavaredo%2C_Veneto%2C_Italy_-_Sept_2011.jpg',t:'Tre Cime & Cortina',d:'Le Tre Cime di Lavaredo e Cortina: l\'itinerario icona delle Dolomiti.',km:150,h:'4h',df:'Media',
+   coords:{o:[46.7266,12.2346],d:[46.7266,12.2346]},
+   tappe:[{n:'Dobbiaco',d:'Val Pusteria',lat:46.7266,lon:12.2346},{n:'Tre Cime di Lavaredo',d:'2333m, il simbolo delle Dolomiti',lat:46.6175,lon:12.3016},{n:'Misurina',d:'Il lago specchio',lat:46.5870,lon:12.2583},{n:'Cortina d\'Ampezzo',d:'La Regina delle Dolomiti',lat:46.5396,lon:12.1357},{n:'Passo Falzarego',d:'2117m',lat:46.5195,lon:11.9817},{n:'Dobbiaco',d:'Rientro',lat:46.7266,lon:12.2346}]},
+  {id:12,r:'Campania',z:'Sud',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Amalfi_Coast_from_Valle_delle_Ferriere_trail%2C_2013.jpg/800px-Amalfi_Coast_from_Valle_delle_Ferriere_trail%2C_2013.jpg',t:'Costiera Amalfitana',d:'La SS163, una delle strade più belle del mondo: curve, strapiombi e borghi colorati.',km:100,h:'3h',df:'Media',
+   coords:{o:[40.6262,14.3756],d:[40.6757,14.9443]},
+   tappe:[{n:'Sorrento',d:'Golfo di Napoli',lat:40.6262,lon:14.3756},{n:'Positano',d:'Il gioiello verticale',lat:40.6282,lon:14.4843},{n:'Praiano',d:'Borgo autentico',lat:40.6121,lon:14.5311},{n:'Amalfi',d:'Duomo arabo-normanno',lat:40.6342,lon:14.6025},{n:'Ravello',d:'Giardini sopra il mare',lat:40.6462,lon:14.6128},{n:'Vietri sul Mare',d:'Capitale della ceramica',lat:40.6757,lon:14.9443}]},
+  {id:13,r:'Campania',z:'Sud',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Paestum_Temples.jpg/800px-Paestum_Temples.jpg',t:'Cilento Segreto',d:'Il Parco Nazionale del Cilento: mare, montagna, templi greci e cucina autentica.',km:240,h:'5h',df:'Facile',
+   coords:{o:[40.6811,14.7594],d:[40.0286,15.2837]},
+   tappe:[{n:'Salerno',d:'Partenza',lat:40.6811,lon:14.7594},{n:'Paestum',d:'Tre templi greci UNESCO',lat:40.4218,lon:15.0030},{n:'Agropoli',d:'Promontorio sul mare',lat:40.3490,lon:14.9938},{n:'Castellabate',d:'Borgo nel Parco Nazionale',lat:40.2786,lon:14.9558},{n:'Velia',d:'Antica Elea dei filosofi',lat:40.1607,lon:15.1548},{n:'Palinuro',d:'Grotte marine e capo',lat:40.0286,lon:15.2837}]},
+  {id:14,r:'Piemonte',z:'Nord',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Barolo_vineyard_in_autumn.jpg/800px-Barolo_vineyard_in_autumn.jpg',t:'Langhe & Barolo',d:'Le colline UNESCO del Barolo: nebbia mattutina, tartufo bianco e i migliori vini d\'Italia.',km:160,h:'4h',df:'Facile',
+   coords:{o:[44.6990,8.0353],d:[44.6990,8.0353]},
+   tappe:[{n:'Alba',d:'Capitale del tartufo e del Barolo',lat:44.6990,lon:8.0353},{n:'La Morra',d:'Belvedere 360° sulle Langhe',lat:44.6354,lon:7.9323},{n:'Barolo',d:'Il paese del re dei vini',lat:44.6086,lon:7.9395},{n:'Nizza Monferrato',d:'Barbera d\'Asti DOC',lat:44.7730,lon:8.3558},{n:'Asti',d:'Palio e Moscato',lat:44.9003,lon:8.2065},{n:'Alba',d:'Rientro',lat:44.6990,lon:8.0353}]},
+  {id:15,r:'Piemonte',z:'Nord',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Colle_Agnello.jpg/800px-Colle_Agnello.jpg',t:'Agnello & Izoard',d:'Due valichi leggendari al confine con la Francia. Quota 2748m e paesaggi lunari.',km:200,h:'5h',df:'Impegnativa',
+   coords:{o:[44.3841,7.5428],d:[44.3841,7.5428]},
+   tappe:[{n:'Cuneo',d:'Partenza',lat:44.3841,lon:7.5428},{n:'Saluzzo',d:'Borgo rinascimentale',lat:44.6443,lon:7.4887},{n:'Pontechianale',d:'Lago turchese in quota',lat:44.5773,lon:7.0378},{n:'Colle dell\'Agnello',d:'2748m, tra i più alti delle Alpi',lat:44.6783,lon:6.9801},{n:'Colle dell\'Izoard',d:'2360m, le Casse Deserte',lat:44.8207,lon:6.7372},{n:'Cuneo',d:'Rientro',lat:44.3841,lon:7.5428}]},
 ];
 
 let regDone=false;
@@ -720,9 +830,8 @@ function renderRegioni(){
   if(regDone) return; regDone=true;
   const fEl=document.getElementById('regFilter');
   ['Tutte','Nord','Centro','Sud'].forEach((z,i)=>{
-    const b=document.createElement('button');
-    b.className='rf-btn'+(i===0?' active':'');b.textContent=z;
-    b.onclick=()=>{document.querySelectorAll('.rf-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderCards(z==='Tutte'?RD:RD.filter(r=>r.z===z));};
+    const b=document.createElement('button');b.className='rf'+(i===0?' active':'');b.textContent=z;
+    b.onclick=()=>{document.querySelectorAll('.rf').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderCards(z==='Tutte'?RD:RD.filter(r=>r.z===z));};
     fEl.appendChild(b);
   });
   renderCards(RD);
@@ -730,8 +839,8 @@ function renderRegioni(){
 
 function renderCards(data){
   document.getElementById('regGrid').innerHTML=data.map(r=>`
-    <div class="reg-card" onclick="openModal(${r.id})">
-      <div class="rc-thumb" style="background:${r.bg}">${r.e}</div>
+    <div class="rc" onclick="openModal(${r.id})">
+      <img class="rc-img" src="${r.img}" alt="${r.t}" onerror="this.style.background='var(--bg3)';this.style.minHeight='180px'"/>
       <div class="rc-body">
         <div class="rc-reg">${r.r}</div>
         <div class="rc-title">${r.t}</div>
@@ -739,7 +848,7 @@ function renderCards(data){
         <div class="rc-footer">
           <span class="tag">${r.km} km</span>
           <span class="tag">${r.h}</span>
-          <span class="tag ${r.df==='Facile'?'tg':r.df==='Impegnativa'?'ta':''}">${r.df}</span>
+          <span class="tag ${r.df==='Facile'?'tg':r.df==='Impegnativa'?'to':''}">${r.df}</span>
         </div>
       </div>
     </div>`).join('');
@@ -749,26 +858,40 @@ function openModal(id){
   const r=RD.find(x=>x.id===id);if(!r)return;
   const st=encodeURIComponent(`🏍️ ${r.t} — ${r.r}\n${r.d}\n${r.km}km · ${r.h}\n\nScopri altri su MotoRoute AI`);
   const su=encodeURIComponent(window.location.href);
+  const o=r.tappe[0],d2=r.tappe[r.tappe.length-1];
+  const wp=r.tappe.slice(1,-1).map(t=>`${t.lat},${t.lon}`).join('|');
+  const gmapsUrl=`https://www.google.com/maps/dir/?api=1&origin=${o.lat},${o.lon}&destination=${d2.lat},${d2.lon}&waypoints=${wp}&travelmode=driving`;
+
+  // GPX
+  const gpxFn=()=>{
+    const wpts=r.tappe.map(t=>`  <wpt lat="${t.lat}" lon="${t.lon}">\n    <name>${xe(t.n)}</name><desc>${xe(t.d)}</desc>\n  </wpt>`).join('\n');
+    const trk=r.tappe.map(t=>`      <trkpt lat="${t.lat}" lon="${t.lon}"/>`).join('\n');
+    const gpx=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="MotoRoute AI" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>${xe(r.t)}</name></metadata>\n${wpts}\n  <trk><name>${xe(r.t)}</name><trkseg>\n${trk}\n  </trkseg></trk>\n</gpx>`;
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));a.download=r.t.replace(/\s+/g,'_')+'.gpx';a.click();
+  };
+  window._gpxFn=gpxFn;
+
   document.getElementById('mc').innerHTML=`
-    <div class="mb-thumb" style="background:${r.bg}">${r.e}
-      <button class="mb-close" onclick="document.getElementById('mo').classList.remove('open')"><i class="ti ti-x"></i></button>
-    </div>
+    <img class="mb-img" src="${r.img}" alt="${r.t}" onerror="this.style.display='none'"/>
+    <button class="mb-close" onclick="document.getElementById('mo').classList.remove('open')"><i class="ti ti-x"></i></button>
     <div class="mb-body">
       <div class="mb-reg">${r.r} · ${r.df}</div>
       <div class="mb-title">${r.t}</div>
       <div class="mb-desc">${r.d}</div>
-      <div style="display:flex;gap:8px;margin-bottom:16px">
-        <div class="sc"><div class="sv">${r.km}</div><div class="sl">km</div></div>
-        <div class="sc"><div class="sv">${r.h}</div><div class="sl">durata</div></div>
-        <div class="sc"><div class="sv">${r.tappe.length}</div><div class="sl">tappe</div></div>
+      <div class="mb-stats">
+        <div class="sc"><div class="sv">${r.km}</div><div class="sl2">km</div></div>
+        <div class="sc"><div class="sv">${r.h}</div><div class="sl2">durata</div></div>
+        <div class="sc"><div class="sv">${r.tappe.length}</div><div class="sl2">tappe</div></div>
       </div>
-      <div style="font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Tappe del percorso</div>
-      <div class="mb-stops">${r.tappe.map((t,i)=>`<div class="ms"><div class="ms-num">${i+1}</div><div class="ms-txt"><span class="ms-name">${t.n}</span> — ${t.d}</div></div>`).join('')}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn-a fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${su}&quote=${st}','_blank')"><i class="ti ti-brand-facebook"></i> Facebook</button>
-        <button class="btn-a wa" onclick="window.open('https://wa.me/?text=${st}%20${su}','_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
-        <button class="btn-a tw" onclick="window.open('https://twitter.com/intent/tweet?text=${st}&url=${su}','_blank')"><i class="ti ti-brand-x"></i> X</button>
-        <button class="btn-a" onclick="copyModal(${r.id})"><i class="ti ti-copy"></i> Copia</button>
+      <div style="font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.9px;margin-bottom:10px">Tappe del percorso</div>
+      <div class="mb-stops">${r.tappe.map((t,i)=>`<div class="ms"><div class="msn">${i+1}</div><div class="mst"><span class="msn2">${t.n}</span> — ${t.d}</div></div>`).join('')}</div>
+      <div class="mb-actions">
+        <button class="btn-a p" onclick="window._gpxFn()"><i class="ti ti-download"></i> Scarica GPX</button>
+        <a class="btn-a" href="${gmapsUrl}" target="_blank" style="text-decoration:none"><i class="ti ti-map"></i> Google Maps</a>
+        <button class="btn-a fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${su}&quote=${st}','_blank')"><i class="ti ti-brand-facebook"></i></button>
+        <button class="btn-a wa" onclick="window.open('https://wa.me/?text=${st}%20${su}','_blank')"><i class="ti ti-brand-whatsapp"></i></button>
+        <button class="btn-a tw" onclick="window.open('https://twitter.com/intent/tweet?text=${st}&url=${su}','_blank')"><i class="ti ti-brand-x"></i></button>
+        <button class="btn-a" onclick="copyModal(${r.id})"><i class="ti ti-copy"></i></button>
       </div>
     </div>`;
   document.getElementById('mo').classList.add('open');
@@ -779,21 +902,20 @@ function copyModal(id){
   navigator.clipboard.writeText(`🏍️ ${r.t} — ${r.r}\n${r.d}\n\n📍 Tappe:\n`+r.tappe.map((t,i)=>`${i+1}. ${t.n} — ${t.d}`).join('\n')+`\n\n📏 ${r.km}km · ⏱️ ${r.h}\n\nMotoRoute AI`).then(()=>showToast('Testo copiato!')).catch(()=>{});
 }
 
-function closeMo(e){if(e.target===document.getElementById('mo')) document.getElementById('mo').classList.remove('open');}
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2200);}
+function closeMo(e){if(e.target===document.getElementById('mo'))document.getElementById('mo').classList.remove('open');}
 
-// DONATE POPUP
-function openDonate(){document.getElementById('donatePopup').style.display='flex';}
+// ── DONATE ──
+function openDonate(){document.getElementById('dp').classList.add('open');}
 function closeDonate(dismiss){
-  document.getElementById('donatePopup').style.display='none';
-  if(dismiss) localStorage.setItem('donateDismissed','1');
+  document.getElementById('dp').classList.remove('open');
+  if(dismiss) try{localStorage.setItem('donateDismissed','1');}catch(e){}
 }
-// Mostra popup dopo 45 sec se non gia dismisso
-setTimeout(()=>{
-  if(!localStorage.getItem('donateDismissed')) openDonate();
-},45000);
+function closeDpOverlay(e){if(e.target===document.getElementById('dp'))closeDonate(false);}
+setTimeout(()=>{try{if(!localStorage.getItem('donateDismissed'))openDonate();}catch(e){openDonate();}},45000);
 
-function xe(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// ── UTILS ──
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2200);}
+function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 </script>
 </body>
 </html>
