@@ -504,7 +504,7 @@ input[type=range]:disabled{opacity:.3;cursor:default}
 // ══════════════════════════
 // API KEY
 // ══════════════════════════
-const API_KEY = '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';
+// API key gestita dal server Vercel — non serve inserirla qui
 
 // ── STATE ──
 let priority = 'time';
@@ -659,11 +659,11 @@ Rispondi SOLO JSON valido senza markdown:
 {"titolo":"max 6 parole evocative","sottotitolo":"una frase","km_totali":N,"durata_ore":N,"difficolta":"Facile|Media|Impegnativa","highlights":"2-3 punti salienti","tappe":[{"nome":"luogo reale","lat":N,"lon":N,"descrizione":"cosa fare, max 2 righe","tipo":"partenza|percorso|sosta_cibo|ristorante|punto_panoramico|passo|arrivo","km_da_inizio":N,"tempo_min":N}]}
 6-9 tappe con coordinate italiane accurate.`;
 
-  const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+  const resp=await fetch('/api/claude',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({messages:[{role:'user',content:prompt}],max_tokens:2000})
   });
-  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||`Errore ${resp.status}`);}
+  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||`Errore ${resp.status}. Controlla che la API key sia impostata su Vercel.`);}
   const data=await resp.json();
   return JSON.parse(data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim());
 }
