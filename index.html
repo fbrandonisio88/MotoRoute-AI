@@ -276,16 +276,58 @@ input[type=range]:disabled{opacity:.3;cursor:default}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--txt);padding:9px 22px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .2s;border:.5px solid var(--border2)}
 
 @media(max-width:760px){
-  .sidebar{width:100%;border-right:none;border-bottom:.5px solid var(--border)}
-  .gen-layout{flex-direction:column}
-  #map{height:180px}
+  html,body{height:auto;overflow-y:auto}
+  .app{height:auto;min-height:100vh;overflow:visible}
+  header{position:sticky;top:0;z-index:100;height:48px;padding:0 .75rem}
+  .logo-badge{width:32px;height:32px}
+  .logo-badge svg{width:20px;height:20px}
+  .logo-name{font-size:17px}
+  .nb{padding:6px 10px}
+  .btn-donate-hdr{padding:5px 9px}
+
+  .page{overflow:visible;height:auto}
+  .gen-layout{flex-direction:column;overflow:visible;height:auto}
+
+  .sidebar{width:100%;border-right:none;border-bottom:none;overflow:visible;height:auto;max-height:none}
+  .sidebar-inner{padding:1rem 1rem 90px}
+
+  .quick-bar{flex-direction:column;align-items:stretch;gap:8px}
+  .btn-quick{width:100%;justify-content:center;font-size:13px;padding:11px}
+  .quick-or{text-align:center}
+  .btn-customize{text-align:center}
+
+  /* Bottone genera fisso in basso, sempre raggiungibile */
+  .btn-gen{
+    position:fixed;bottom:0;left:0;right:0;z-index:200;
+    border-radius:0;padding:16px;
+    box-shadow:0 -4px 20px rgba(0,0,0,.4);
+    margin-top:0;
+  }
+  /* spazio extra in fondo al form per non finire nascosto dal bottone fisso */
+  #formSections{padding-bottom:8px}
+
+  .result-col{width:100%;overflow:visible;height:auto;min-height:50vh}
+  #map{height:200px}
+  .result-inner{padding:1rem}
+  .r-title{font-size:22px}
+  .stats-row{gap:6px}
+  .sc{min-width:60px;padding:8px 10px}
+  .actions{gap:6px}
+  .btn-a{padding:7px 11px;font-size:12px}
+
   .rp-title{font-size:26px}
-  .reg-grid{grid-template-columns:1fr 1fr}
+  .reg-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .reg-inner{padding:1.25rem 1rem}
+
+  .mb{max-height:85vh}
+  .mb-body{padding:1.25rem}
 }
 @media(max-width:480px){
   .reg-grid{grid-template-columns:1fr}
   .nb span{display:none}
   .logo-sub{display:none}
+  .quick-bar{gap:6px}
+  .dream-input{height:70px}
 }
 </style>
 </head>
