@@ -299,9 +299,9 @@ input[type=range]:disabled{opacity:.3;cursor:default}
   /* Bottone genera fisso in basso, sempre raggiungibile */
   .btn-gen{
     position:fixed;bottom:0;left:0;right:0;z-index:200;
-    border-radius:0;padding:16px;
-    box-shadow:0 -4px 20px rgba(0,0,0,.4);
-    margin-top:0;
+    border-radius:0;padding:18px;font-size:17px;
+    box-shadow:0 -4px 20px rgba(0,0,0,.5);
+    margin-top:0;letter-spacing:1px;
   }
   /* spazio extra in fondo al form per non finire nascosto dal bottone fisso */
   #formSections{padding-bottom:8px}
@@ -312,8 +312,9 @@ input[type=range]:disabled{opacity:.3;cursor:default}
   .r-title{font-size:22px}
   .stats-row{gap:6px}
   .sc{min-width:60px;padding:8px 10px}
-  .actions{gap:6px}
-  .btn-a{padding:7px 11px;font-size:12px}
+  .actions{gap:8px;flex-wrap:wrap}
+  .btn-a{padding:11px 14px;font-size:13px;flex:1;justify-content:center;min-width:calc(50% - 4px)}
+  .btn-a.p{flex:1 1 100%}
 
   .rp-title{font-size:26px}
   .reg-grid{grid-template-columns:1fr 1fr;gap:12px}
@@ -789,10 +790,10 @@ function renderResult(route,weather,fd){
     ${stopsHtml}
     <div class="actions">
       <button class="btn-a p" onclick="downloadGPX()"><i class="ti ti-download"></i> GPX</button>
-      <button class="btn-a" onclick="openGMaps()"><i class="ti ti-map"></i> Google Maps</button>
-      <button class="btn-a fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${su}&quote=${st}','_blank')"><i class="ti ti-brand-facebook"></i></button>
-      <button class="btn-a wa" onclick="window.open('https://wa.me/?text=${st}%20${su}','_blank')"><i class="ti ti-brand-whatsapp"></i></button>
-      <button class="btn-a tw" onclick="window.open('https://twitter.com/intent/tweet?text=${st}&url=${su}','_blank')"><i class="ti ti-brand-x"></i></button>
+      <button class="btn-a" onclick="openGMaps()"><i class="ti ti-map"></i> Maps</button>
+      <button class="btn-a fb" onclick="shareRoute('fb')"><i class="ti ti-brand-facebook"></i> Facebook</button>
+      <button class="btn-a wa" onclick="shareRoute('wa')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+      <button class="btn-a tw" onclick="shareRoute('tw')"><i class="ti ti-brand-x"></i> X</button>
       <button class="btn-a" onclick="copyRoute()"><i class="ti ti-copy"></i> Copia</button>
     </div>
   </div>`;
@@ -937,10 +938,10 @@ function openModal(id){
       <div class="mb-actions">
         <button class="btn-a p" onclick="window._gpxFn()"><i class="ti ti-download"></i> Scarica GPX</button>
         <a class="btn-a" href="${gmapsUrl}" target="_blank" style="text-decoration:none"><i class="ti ti-map"></i> Google Maps</a>
-        <button class="btn-a fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${su}&quote=${st}','_blank')"><i class="ti ti-brand-facebook"></i></button>
-        <button class="btn-a wa" onclick="window.open('https://wa.me/?text=${st}%20${su}','_blank')"><i class="ti ti-brand-whatsapp"></i></button>
-        <button class="btn-a tw" onclick="window.open('https://twitter.com/intent/tweet?text=${st}&url=${su}','_blank')"><i class="ti ti-brand-x"></i></button>
-        <button class="btn-a" onclick="copyModal(${r.id})"><i class="ti ti-copy"></i></button>
+        <button class="btn-a fb" onclick="shareRegion('fb',${r.id})"><i class="ti ti-brand-facebook"></i> Facebook</button>
+        <button class="btn-a wa" onclick="shareRegion('wa',${r.id})"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+        <button class="btn-a tw" onclick="shareRegion('tw',${r.id})"><i class="ti ti-brand-x"></i> X</button>
+        <button class="btn-a" onclick="copyModal(${r.id})"><i class="ti ti-copy"></i> Copia</button>
       </div>
     </div>`;
   document.getElementById('mo').classList.add('open');
@@ -951,6 +952,26 @@ function copyModal(id){
   navigator.clipboard.writeText(`🏍️ ${r.t} — ${r.r}\n${r.d}\n\n📍 Tappe:\n`+r.tappe.map((t,i)=>`${i+1}. ${t.n} — ${t.d}`).join('\n')+`\n\n📏 ${r.km}km · ⏱️ ${r.h}\n\nMotoRoute AI`).then(()=>showToast('Testo copiato!')).catch(()=>{});
 }
 
+function shareRegion(platform, id){
+  const r=RD.find(x=>x.id===id); if(!r) return;
+  const st=encodeURIComponent('\u{1F3CD} '+r.t+' \u2014 '+r.r+'\n'+r.d+'\n'+r.km+'km \u00b7 '+r.h+'\n\nScopri altri su MotoRoute AI');
+  const su=encodeURIComponent(window.location.href);
+  let url='';
+  if(platform==='fb') url='https://www.facebook.com/sharer/sharer.php?u='+su+'&quote='+st;
+  if(platform==='wa') url='https://wa.me/?text='+st+'%20'+su;
+  if(platform==='tw') url='https://twitter.com/intent/tweet?text='+st+'&url='+su;
+  if(url) window.open(url,'_blank','noopener,noreferrer');
+}
+function shareRoute(platform){
+  const r=window._cr; if(!r) return;
+  const st=encodeURIComponent('\u{1F3CD} '+r.titolo+'\n'+r.sottotitolo+'\n'+r.km_totali+'km \u00b7 '+r.durata_ore+'h\n\nGenerato con MotoRoute AI');
+  const su=encodeURIComponent(window.location.href);
+  let url='';
+  if(platform==='fb') url='https://www.facebook.com/sharer/sharer.php?u='+su+'&quote='+st;
+  if(platform==='wa') url='https://wa.me/?text='+st+'%20'+su;
+  if(platform==='tw') url='https://twitter.com/intent/tweet?text='+st+'&url='+su;
+  if(url) window.open(url,'_blank','noopener,noreferrer');
+}
 function closeMo(e){if(e.target===document.getElementById('mo'))document.getElementById('mo').classList.remove('open');}
 
 // ── DONATE ──
